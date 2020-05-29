@@ -14,8 +14,8 @@ go get github.com/lulouis/marisfrolg_utils
 
 ### 案例1：字符串函数
 
+(```)
 package main
-
 import (
 	"fmt"
 
@@ -27,3 +27,5 @@ func main() {
 	fmt.Println(substring)
 
 }
+
+(```)
