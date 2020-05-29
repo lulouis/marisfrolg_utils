@@ -1,4 +1,4 @@
-package Marisfrolg_utils
+package marisfrolg_utils
 
 import (
 	"fmt"
