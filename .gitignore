@@ -17,11 +17,8 @@
 debug
 
 # Folders
-*.exe
-*.exe~
 *.gz
 .idea
-*.out
 *.Log
 
 /uploads

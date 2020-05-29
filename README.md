@@ -27,3 +27,9 @@ func main() {
 	fmt.Println(substring)
 
 }
+
+### 案例2:请查看example里面的 StringHelper_test.go
+运行测试案例
+```cd example 
+go test -v StringHelper_test.go
+```
