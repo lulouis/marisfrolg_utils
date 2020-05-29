@@ -11,7 +11,7 @@ go get github.com/lulouis/marisfrolg_utils
 
 2、数据库类
 
-## 测试案例 Usage
+## 测试案例 Usage 参考网站：http://c.biancheng.net/view/124.html
 新建xxx_test.go文件
 1.测试整个文件:
 ```
