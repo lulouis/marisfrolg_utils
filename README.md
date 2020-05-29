@@ -11,8 +11,16 @@ go get github.com/lulouis/marisfrolg_utils
 
 2、数据库类
 
-## 测试案例
+## 测试案例 Usage
 新建xxx_test.go文件
+1.测试整个文件:
+```
+go test -v Convert_test.go
+```
+2.指定某个库某个方法进行测试:
+```
+go test -v -run TestPadRight StringHelper_test.go
+```
 ### 案例1：字符串函数
 ```
 package main

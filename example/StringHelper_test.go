@@ -10,3 +10,8 @@ func TestPadLeft(t *testing.T){
 	r:=marisfrolg_utils.PadLeft("marisfrolg",15,"p")
 	fmt.Println(r)
 }
+
+func TestPadRight(t *testing.T){
+	r:=marisfrolg_utils.PadRight("marisfrolg",15,"p")
+	fmt.Println(r)
+}
