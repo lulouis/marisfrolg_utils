@@ -15,9 +15,10 @@ import (
 
 /*
 添加操作日志
-Type:控制器名称
+Type:控制器名称(可以为空)
 Title:函数名称
 Message:要记录在日志的内容
+Filepath 日志文件要存放的路径
 */
 func AddOperationLog(Type string, Title string, Message string,Filepath string) {
 	var (
