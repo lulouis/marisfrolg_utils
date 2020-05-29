@@ -14,8 +14,8 @@ go get github.com/lulouis/marisfrolg_utils
 
 ### 案例1：字符串函数
 
-
-`package main
+```
+package main
 import (
 	"fmt"
 
@@ -26,5 +26,5 @@ func main() {
 	substring := convert.Substr("marisfrolg_utils", 0, 10)
 	fmt.Println(substring)
 
-}`
-
+}
+```
