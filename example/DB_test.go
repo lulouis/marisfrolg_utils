@@ -22,3 +22,12 @@ func TestAssemblyParameters(t *testing.T) {
 	r := marisfrolg_utils.AssemblyParameters("'987654321','123456789'", "ABC")
 	fmt.Println(r)
 }
+
+func TestGetSqlList(t *testing.T) {
+	r := marisfrolg_utils.GetSqlList("'123456789'", "ABC")
+	fmt.Println(r)
+}
+func TestStringToRuneArr(t *testing.T) {
+	r := marisfrolg_utils.StringToRuneArr("'123456789'")
+	fmt.Println(r)
+}

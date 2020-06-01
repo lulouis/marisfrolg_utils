@@ -41,7 +41,7 @@ type EmailRequest struct {
 /*
 发送邮件
 */
-func (emailServer EmailServer) SendMail(emailRequest EmailRequest) error {
+	func (emailServer EmailServer) SendMail(emailRequest EmailRequest) error {
 	mail := gomail.NewMessage()
 	mail.SetHeader("From", mail.FormatAddress(emailServer.User, emailRequest.SetHeader))
 	mail.SetHeader("To", emailRequest.MailTo...)    //发送给多个用户

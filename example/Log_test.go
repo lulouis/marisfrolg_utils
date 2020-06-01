@@ -1,10 +1,21 @@
 package main
 
 import (
-	 "github.com/lulouis/marisfrolg_utils"
+	"fmt"
+	"github.com/lulouis/marisfrolg_utils"
 	"testing"
 )
 
 func TestLog(t *testing.T) {
 	marisfrolg_utils.AddOperationLog("文件名", "测试", "消息内容", "LOG")
+}
+
+func TestPrintMyName(t *testing.T) {
+	name := marisfrolg_utils.PrintMyName()
+	fmt.Println(name)
+}
+
+func TestGetFileName(t *testing.T) {
+	name := marisfrolg_utils.GetFileName()
+	fmt.Println(name)
 }

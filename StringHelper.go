@@ -64,43 +64,25 @@ func ValueToString(data interface{}) string {
 	return ""
 }
 
-// 随机生成大写字母
-func GetRandomString(l int) string {
+// 随机生成指定位数的大写字母
+func GetRandomString(Length int) string {
 	str := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	bytes := []byte(str)
 	result := []byte{}
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < l; i++ {
+	for i := 0; i < Length; i++ {
 		result = append(result, bytes[r.Intn(len(bytes))])
 	}
 	return string(result)
 }
-
-//判断是否存在
-func Contains(array interface{}, val interface{}) (index int) {
-	index = -1
-	switch reflect.TypeOf(array).Kind() {
-	case reflect.Slice:
-		{
-			s := reflect.ValueOf(array)
-			for i := 0; i < s.Len(); i++ {
-				if reflect.DeepEqual(val, s.Index(i).Interface()) {
-					index = i
-					return
-				}
-			}
-		}
-	}
-	return
-}
-//验证手机号
-func ValidateMobile(mobileNum string) bool {
+//验证手机号是否符合要求
+	func ValidateMobile(mobileNum string) bool {
 	regMobile := `^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[89])\d{8}$`
 	reg := regexp.MustCompile(regMobile)
 	return reg.MatchString(mobileNum)
 }
 
-//移除重复数据
+//移除string数组中重复数据,返回已经处理好的无重复的string数组
 func RemoveRepeatedElement(arr []string) (newArr []string) {
 	newArr = make([]string, 0)
 	sort.Strings(arr)

@@ -85,7 +85,7 @@ func LoadFile(filename string, v interface{}) (err error) {
 	return
 }
 
-//检查制定路径下是否存在文件如果不存在直接创建文件夹
+	//检查制定路径下是否存在文件如果不存在直接创建文件夹
 func PathlogExistsFile(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {

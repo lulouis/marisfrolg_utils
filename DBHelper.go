@@ -10,8 +10,6 @@ import (
 数据库相关操作
 */
 
-
-
 /// <summary>
 /// 批量执行 含事务
 /// </summary>
@@ -54,7 +52,6 @@ ERR:
 	return err
 }
 
-
 //SQL IN()的查询里不能超过1000列，将大于1000列的以900为间隔分开组装
 //IdList:数据列 例如："'987654321','123456789'"
 //Field:字段名
@@ -89,38 +86,39 @@ func AssemblyParameters(IdList, Field string) (condition string) {
 	}
 }
 
-
 //对数据库查询请求参数的优化
-func GetSqlList(s string, ziduanming string) string {
-	a := strings.Index(s, ",")
+//Parameters 数据查询参数
+//Field 字段名
+func GetSqlList(Parameters string, Field string) string {
+	a := strings.Index(Parameters, ",")
 	if a == -1 {
 		var condition string
-		s = strings.Replace(s, " ", "", -1)
-		s = strings.Replace(s, "“", "", -1)
-		s = strings.Replace(s, "”", "", -1)
-		s = strings.Replace(s, "'", "", -1)
-		s = strings.Replace(s, "‘", "", -1)
-		s = strings.Replace(s, "，", "", -1)
-		s = strings.Replace(s, "[", "", -1)
-		s = strings.Replace(s, "]", "", -1)
-		condition = " AND " + ziduanming + " = " + "'" + s + "'"
+		Parameters = strings.Replace(Parameters, " ", "", -1)
+		Parameters = strings.Replace(Parameters, "“", "", -1)
+		Parameters = strings.Replace(Parameters, "”", "", -1)
+		Parameters = strings.Replace(Parameters, "'", "", -1)
+		Parameters = strings.Replace(Parameters, "‘", "", -1)
+		Parameters = strings.Replace(Parameters, "，", "", -1)
+		Parameters = strings.Replace(Parameters, "[", "", -1)
+		Parameters = strings.Replace(Parameters, "]", "", -1)
+		condition = " AND " + Field + " = " + "'" + Parameters + "'"
 		return condition
 	} else {
 		var list []string
 		var fz = ""
-		var condition = ziduanming + "="
+		var condition = Field + "="
 		var bz = " AND ("
-		s += ","
-		s = strings.Replace(s, " ", "", -1)
-		s = strings.Replace(s, "\"", "", -1)
-		s = strings.Replace(s, "“", "", -1)
-		s = strings.Replace(s, "”", "", -1)
-		s = strings.Replace(s, "'", "", -1)
-		s = strings.Replace(s, "‘", "", -1)
-		s = strings.Replace(s, "，", "", -1)
-		s = strings.Replace(s, "[", "", -1)
-		s = strings.Replace(s, "]", "", -1)
-		for _, a := range s {
+		Parameters += ","
+		Parameters = strings.Replace(Parameters, " ", "", -1)
+		Parameters = strings.Replace(Parameters, "\"", "", -1)
+		Parameters = strings.Replace(Parameters, "“", "", -1)
+		Parameters = strings.Replace(Parameters, "”", "", -1)
+		Parameters = strings.Replace(Parameters, "'", "", -1)
+		Parameters = strings.Replace(Parameters, "‘", "", -1)
+		Parameters = strings.Replace(Parameters, "，", "", -1)
+		Parameters = strings.Replace(Parameters, "[", "", -1)
+		Parameters = strings.Replace(Parameters, "]", "", -1)
+		for _, a := range Parameters {
 			if string(a) == "," {
 				list = append(list, fz)
 				fz = ""
@@ -138,17 +136,18 @@ func GetSqlList(s string, ziduanming string) string {
 }
 
 //对HANA查询结果的特殊符号优化
-func StringToRuneArr(s string) []string {
-	s = strings.Replace(s, " ", "", -1)
-	s = strings.Replace(s, "\"", "", -1)
-	s = strings.Replace(s, "“", "", -1)
-	s = strings.Replace(s, "”", "", -1)
-	s = strings.Replace(s, "'", "", -1)
-	s = strings.Replace(s, "‘", "", -1)
+//Parameters 数据结果列请求参数
+func StringToRuneArr(Parameters string) []string {
+	Parameters = strings.Replace(Parameters, " ", "", -1)
+	Parameters = strings.Replace(Parameters, "\"", "", -1)
+	Parameters = strings.Replace(Parameters, "“", "", -1)
+	Parameters = strings.Replace(Parameters, "”", "", -1)
+	Parameters = strings.Replace(Parameters, "'", "", -1)
+	Parameters = strings.Replace(Parameters, "‘", "", -1)
 	// s = strings.Replace(s, ",", "", -1)
-	s = strings.Replace(s, "，", "", -1)
-	s = strings.Replace(s, "[", "", -1)
-	s = strings.Replace(s, "]", "", -1)
-	aa := strings.Split(s, ",")
-	return aa
+	Parameters = strings.Replace(Parameters, "，", "", -1)
+	Parameters = strings.Replace(Parameters, "[", "", -1)
+	Parameters = strings.Replace(Parameters, "]", "", -1)
+	Result := strings.Split(Parameters, ",")
+	return Result
 }
