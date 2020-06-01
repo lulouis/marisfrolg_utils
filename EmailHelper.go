@@ -4,13 +4,16 @@ import (
 	"fmt"
 	_ "io/ioutil"
 	"mime"
-	"os"
 	"path"
 	_ "runtime"
 	_ "strconv"
 
 	"gopkg.in/gomail.v2"
 )
+
+/*邮件系统*/
+
+
 
 type Attachment struct {
 	name        []string
@@ -66,20 +69,6 @@ func (emailServer EmailServer) SendMail(emailRequest EmailRequest) error {
 	return err
 }
 
-//判断文件大小
-func getFileSize(path string) int64 {
-	if !exists(path) {
-		return 0
-	}
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		return 0
-	}
-	return fileInfo.Size()
-}
 
-//判断是否存在文件
-func exists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil || os.IsExist(err)
-}
+
+

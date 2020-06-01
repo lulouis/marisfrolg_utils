@@ -1,13 +1,8 @@
 package marisfrolg_utils
 
 import (
-	"errors"
 	"math"
 	"math/big"
-	"math/rand"
-	"reflect"
-	"strconv"
-	"time"
 )
 
 func ToFloat64(ori []byte) (re float64) {
@@ -130,95 +125,9 @@ func Round(f float64, n int) float64 {
 	return math.Trunc((f+0.5/n10)*n10) / n10
 }
 
-func ValueToString(data interface{}) string {
-	value := reflect.ValueOf(data)
-	switch value.Kind() {
-	case reflect.Bool:
-		return strconv.FormatBool(value.Bool())
 
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return strconv.FormatInt(value.Int(), 10)
 
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return strconv.FormatUint(value.Uint(), 10)
 
-	case reflect.Float32, reflect.Float64:
-		return strconv.FormatFloat(value.Float(), 'g', -1, 64)
 
-	case reflect.String:
-		return value.String()
-	}
 
-	return ""
-}
 
-// 随机生成大写字母
-func GetRandomString(l int) string {
-	str := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	bytes := []byte(str)
-	result := []byte{}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < l; i++ {
-		result = append(result, bytes[r.Intn(len(bytes))])
-	}
-	return string(result)
-}
-
-const (
-	LongDateFormat  = "2006-01-02 15:04:05"
-	ShortDateFormat = "2006-01-02"
-)
-
-//获取日期格式
-func GetLongDateString(date string, Hours int64) (dateString string, err error) {
-	if len(date) <= 0 {
-		return "", errors.New("时间不能为空")
-	}
-	inputDate, err := time.Parse(LongDateFormat, date)
-	if err == nil {
-		h, _ := time.ParseDuration("1h")
-		d := inputDate.Add(time.Duration(Hours) * h)
-		return d.Format(LongDateFormat), err
-	} else {
-		return "", errors.New("时间格式错误")
-	}
-}
-
-//获取日期格式
-func GetShortDateString(date string, Hours int64) (dateString string, err error) {
-	if len(date) <= 0 {
-		return "", errors.New("时间为空")
-	}
-	inputDate, err := time.Parse(ShortDateFormat, date)
-	if err == nil {
-		h, _ := time.ParseDuration("1h")
-		d := inputDate.Add(time.Duration(Hours) * h)
-		return d.Format(LongDateFormat), err
-	} else {
-		return "", errors.New("时间格式错误")
-	}
-}
-
-//获取相差时间
-func GetMinuteDiffer(start_time, end_time string) int64 {
-	var hour int64
-	t1, err := time.ParseInLocation("2006-01-02 15:04:05", start_time, time.Local)
-	t2, err := time.ParseInLocation("2006-01-02 15:04:05", end_time, time.Local)
-	if err == nil && t1.Before(t2) {
-		diff := t2.Unix() - t1.Unix() //
-		hour = diff / 60
-		return hour
-	} else {
-		return hour
-	}
-}
-
-//获取某一天的0点时间
-func GetZeroTime(d time.Time) time.Time {
-	return time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, d.Location())
-}
-
-//获取某一天的23:59:59点时间
-func GetZeroTimeEnd(d time.Time) time.Time {
-	return time.Date(d.Year(), d.Month(), d.Day(), 23, 59, 59, 59, d.Location())
-}

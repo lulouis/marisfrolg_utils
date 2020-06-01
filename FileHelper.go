@@ -2,14 +2,19 @@ package marisfrolg_utils
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/tealeg/xlsx"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 )
+
+/* 文件相关操作*/
 
 //判断目录是否存在
 func IsDirExists(path string) bool {
@@ -29,6 +34,7 @@ func IsCreateDir(path string) (err error) {
 	return err
 }
 
+//将文件保存到指定目录
 func SaveFileToTempDirectory(isNeedPrefix bool, file *multipart.FileHeader,UploadFile string) (fileName, filePath string, err error) {
 	var (
 		dir       string
@@ -65,7 +71,6 @@ ERR:
 }
 
 /*
-  创建人：李奇峰
   功能：读取文件反序列化
 */
 func LoadFile(filename string, v interface{}) (err error) {
@@ -78,4 +83,85 @@ func LoadFile(filename string, v interface{}) (err error) {
 		return
 	}
 	return
+}
+
+//检查制定路径下是否存在文件如果不存在直接创建文件夹
+func PathlogExistsFile(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	err = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return false, err
+	} else {
+		return true, nil
+	}
+	return false, err
+}
+
+//网络文件下载
+func DownloadFile(fileName string, url string) (err error) {
+	// Create the file
+	out, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check server response
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("bad status: %s", resp.Status)
+	}
+
+	// Writer the body to file
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// 获取文件大小的接口
+type Size interface {
+	Size() int64
+}
+
+//读取Excel文件流
+func XlsxFileReader(mimeFile multipart.File) (*xlsx.File, error) {
+
+	defer mimeFile.Close()
+	var size int64
+	if sizeInterface, ok := mimeFile.(Size); ok {
+		size = sizeInterface.Size()
+	}
+
+	xlFile, err := xlsx.OpenReaderAt(mimeFile, size)
+	return xlFile, err
+}
+
+//判断文件大小
+func getFileSize(path string) int64 {
+	if !exists(path) {
+		return 0
+	}
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return 0
+	}
+	return fileInfo.Size()
+}
+
+//判断是否存在文件
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil || os.IsExist(err)
 }

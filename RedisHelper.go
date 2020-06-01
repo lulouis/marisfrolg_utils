@@ -1,10 +1,13 @@
 package marisfrolg_utils
 
 import (
+	"fmt"
 	"github.com/go-redis/redis"
 	"time"
-	"fmt"
 )
+
+/*Redis缓存相关操作*/
+
 
 func GetKeyFromRedis(key string,REDIS_CONN string) (data string, err error) {
 	client := redis.NewClient(&redis.Options{
@@ -33,4 +36,6 @@ func SetKeyToRedis(keyName string,value interface{},expireTime time.Duration,RED
 	err=client.Set(keyName, value, expireTime).Err()
 	return
 }
+
+
 

@@ -11,6 +11,11 @@ import (
 	"strings"
 )
 
+
+
+/*身份证加解密相关操作*/
+
+
 //身份证加密
 func FileEncrypt(Path []string) (err error) {
 	key := []byte("12345678")
