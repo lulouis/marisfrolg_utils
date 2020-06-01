@@ -41,7 +41,7 @@ go get github.com/lulouis/marisfrolg_utils
 3、 GetFileName() 获取当前文件名称
 ```
 
->9、 加解密相关操作类(RSA)
+>8、 加解密相关操作类(RSA)
 
 >9、 Redis缓存相关操作类(RedisHelper)
 
