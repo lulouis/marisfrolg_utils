@@ -5,10 +5,12 @@
 go get github.com/lulouis/marisfrolg_utils
 
 ## 使用案例
-帮助类分为12个部分
+帮助类分为10个部分
 
 >1、Convert
+```
 
+```
 >2、数据库类(DBHelper)
 
 ```
@@ -25,25 +27,21 @@ go get github.com/lulouis/marisfrolg_utils
    测试指令:go test -v -run TestStringToRuneArr DB_test.go
    参数说明:Parameters  数据结果列请求参数
  ```
->3、身份证加解密相关操作(DesHelper)
-
->4、发送邮件相关操作(EmailHelper)
+>3、发送邮件相关操作(EmailHelper)
  ```
 1、(emailServer EmailServer) SendMail(emailRequest EmailRequest) error 发送邮件
    测试指令：go test -v -run TestSendMail Email_test.go
    参数说明：emailServer:配置发件邮箱账号和密码端口号,emailRequest 配置收件人、标题、主题、正文、附加路径
  ```
 
-
-
->5、文件相关操作(FileHelper)
+>4、文件相关操作(FileHelper)
  ```
 1、PathlogExistsFile(path string) (bool, error)检查制定路径下是否存在文件如果不存在直接创建文件夹
   测试指令:go test -v -run TestPathlogExistsFile File_test.go
   参数说明:path:文件夹路径
  ```
 
->6、Http相关操作(HttpHelper)
+>5、Http相关操作(HttpHelper)
 ```
 1、HttpPostOnlyBody(apiURL string, parmbody string, token string) (rs []byte, err error) POST请求带token验证的URL
   测试指令:go test -v -run TestHttpPostOnlyBody Http_test.go
@@ -51,7 +49,7 @@ go get github.com/lulouis/marisfrolg_utils
 ```
 
 
->7、文本日志相关操作类(LogUtil)
+>6、文本日志相关操作类(LogUtil)
 ```
 1、AddOperationLog(Type string, Title string, Message string,Filepath string) 添加操作日志 
    测试指令: go test -v -run TestLog Log_test.go
@@ -66,12 +64,11 @@ go get github.com/lulouis/marisfrolg_utils
    测试指令:go test -v -run TestGetFileName Log_test.go
    参数说明:参数无
 ```
+>7、Redis缓存相关操作类(RedisHelper)
+```
 
->8、加解密相关操作类(RSA)
-
->9、Redis缓存相关操作类(RedisHelper)
-
->10、字符串相关操作类(StringHelper)
+```
+>8、字符串相关操作类(StringHelper)
 ```
 1、PadLeft(str string, totalWidth int, paddingChar string) (r string)位数不够自动左补全
    测试指令:go test -v -run TestPadLeft StringHelper_test.go
@@ -89,14 +86,14 @@ go get github.com/lulouis/marisfrolg_utils
    测试指令:go test -v -run TestRemoveRepeatedElement StringHelper_test.go
    参数说明:arr 带有重复的string数组
 ```
->11、发短信相关操作类(SendMessageHelper)
+>9、发短信相关操作类(SendMessageHelper)
 ```
 1、SendShortMessage(regionId string, accessKeyId string, accessKeySecret string,PhoneNumbers string, SignName string, TemplateCode string, TemplateParam string) 阿里云发短信相关操作
    测试指令:go test -v -run TestSendMessage SendMessage_test.go
    参数说明：regionId:区域ID;accessKeyId：访问者身份;accessKeySecret：;SignName:加密签名字符串和服务器端验证签名字符串的密钥，必须严格保密谨防泄露;短信签名;TemplateCode:短信模板ID;TemplateParam:短信模板变量替换JSON串,友情提示:如果JSON中需要带换行符
 ```
 
->12、时间函数相关操作类(TimeHelper)
+>10、时间函数相关操作类(TimeHelper)
 ```
 
 ```
