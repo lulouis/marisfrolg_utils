@@ -5,7 +5,7 @@
 go get github.com/lulouis/marisfrolg_utils
 
 ## 使用案例
-帮助类分为10个部分
+帮助类分为12个部分
 
 >1、Convert
 
