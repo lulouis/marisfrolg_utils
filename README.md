@@ -89,6 +89,17 @@ go get github.com/lulouis/marisfrolg_utils
    测试指令:go test -v -run TestRemoveRepeatedElement StringHelper_test.go
    参数说明:arr 带有重复的string数组
 ```
+>11、发短信相关操作类(SendMessageHelper)
+```
+1、SendShortMessage(regionId string, accessKeyId string, accessKeySecret string,PhoneNumbers string, SignName string, TemplateCode string, TemplateParam string) 阿里云发短信相关操作
+   测试指令:go test -v -run TestSendMessage SendMessage_test.go
+   参数说明：regionId:区域ID;accessKeyId：访问者身份;accessKeySecret：;SignName:加密签名字符串和服务器端验证签名字符串的密钥，必须严格保密谨防泄露;短信签名;TemplateCode:短信模板ID;TemplateParam:短信模板变量替换JSON串,友情提示:如果JSON中需要带换行符
+```
+
+>12、时间函数相关操作类(SendMessage)
+```
+
+```
 ## 测试案例 Usage 参考网站：http://c.biancheng.net/view/124.html
 新建xxx_test.go文件
 1.测试整个文件:
