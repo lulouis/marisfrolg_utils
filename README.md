@@ -96,7 +96,7 @@ go get github.com/lulouis/marisfrolg_utils
    参数说明：regionId:区域ID;accessKeyId：访问者身份;accessKeySecret：;SignName:加密签名字符串和服务器端验证签名字符串的密钥，必须严格保密谨防泄露;短信签名;TemplateCode:短信模板ID;TemplateParam:短信模板变量替换JSON串,友情提示:如果JSON中需要带换行符
 ```
 
->12、时间函数相关操作类(SendMessage)
+>12、时间函数相关操作类(TimeHelper)
 ```
 
 ```
