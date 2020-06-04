@@ -8,7 +8,7 @@ import (
 
 /*Redis缓存相关操作*/
 
-
+//从redis获取Key对应的value
 func GetKeyFromRedis(key string,REDIS_CONN string) (data string, err error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:        REDIS_CONN,
@@ -25,6 +25,7 @@ func GetKeyFromRedis(key string,REDIS_CONN string) (data string, err error) {
 	}
 }
 
+//存储值到redis
 func SetKeyToRedis(keyName string,value interface{},expireTime time.Duration,REDIS_CONN string)(err error){
 	client := redis.NewClient(&redis.Options{
 		Addr:        REDIS_CONN,
