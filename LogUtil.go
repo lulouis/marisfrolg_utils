@@ -13,11 +13,10 @@ import (
 	"time"
 )
 
-
 /*
 文本日志类
 */
-
+var CstZone = time.FixedZone("CST", 8*3600) //获取国内时区
 /*
 添加操作日志
 Type:控制器名称(可以为空)
@@ -25,10 +24,10 @@ Title:函数名称
 Message:要记录在日志的内容
 Filepath 日志文件要存放的路径
 */
-func AddOperationLog(Type string, Title string, Message string,Filepath string) {
+func AddOperationLog(Type string, Title string, Message string, Filepath string) {
 	var (
-		Data    = time.Now().Format(`20060102`)
-		LogPath = "./"+Filepath+"/" + Data
+		Data    = time.Now().In(CstZone).Format(`20060102`)
+		LogPath = "./" + Filepath + "/" + Data
 		exist   bool
 		err     error
 		path    string
@@ -52,7 +51,7 @@ func AddOperationLog(Type string, Title string, Message string,Filepath string) 
 			return
 		}
 		defer file.Close()
-		S := "        " + "\r\n" + "日期：[" + time.Now().Format(`2006-01-02 15:04:05`) + "]" + "    " + "IP：" + GetIP() + "\r\n" +
+		S := "        " + "\r\n" + "日期：[" + time.Now().In(CstZone).Format(`2006-01-02 15:04:05`) + "]" + "    " + "IP：" + GetIP() + "\r\n" +
 			"标题：" + Title + "\r\n" +
 			"内容：" + Message + "\r\n"
 		n, err := io.WriteString(file, S)
@@ -69,7 +68,7 @@ Type:控制器名称
 Title:函数名称
 Message:要记录在日志的内容
 */
-func AddOperationLogFromFileName(action, message, fileName string,Filepath string) {
+func AddOperationLogFromFileName(action, message, fileName string, Filepath string) {
 	var (
 		exist bool
 		err   error
@@ -77,7 +76,7 @@ func AddOperationLogFromFileName(action, message, fileName string,Filepath strin
 		file  *os.File
 	)
 	nowDate := time.Now().Format(`20060102`)
-	LogPath := "./"+Filepath+"/" + nowDate
+	LogPath := "./" + Filepath + "/" + nowDate
 	exist, err = PathlogExistsFile(LogPath)
 	if err != nil {
 		return
@@ -90,7 +89,7 @@ func AddOperationLogFromFileName(action, message, fileName string,Filepath strin
 			return
 		}
 		defer file.Close()
-		S := "        " + "\r\n" + "日期：[" + time.Now().Format(`2006-01-02 15:04:05`) + "]" + "    " + "IP：" + GetIP() + "\r\n" +
+		S := "        " + "\r\n" + "日期：[" + time.Now().In(CstZone).Format(`2006-01-02 15:04:05`) + "]" + "    " + "IP：" + GetIP() + "\r\n" +
 			"内容：" + message + "\r\n"
 		n, err := io.WriteString(file, S)
 		if err != nil {
@@ -99,9 +98,10 @@ func AddOperationLogFromFileName(action, message, fileName string,Filepath strin
 
 	}
 }
+
 //创建.log日志
-func CreateLog(Path string, fileName string, Data string,Filepath string) {
-	LogPath := "./"+Filepath+"/" + time.Now().Format(`20060102`) + "/" + Path
+func CreateLog(Path string, fileName string, Data string, Filepath string) {
+	LogPath := "./" + Filepath + "/" + time.Now().In(CstZone).Format(`20060102`) + "/" + Path
 	exist, err := PathlogExistsFile(LogPath)
 	if err != nil {
 		return
@@ -120,8 +120,6 @@ func CreateLog(Path string, fileName string, Data string,Filepath string) {
 		}
 	}
 }
-
-
 
 func GetIP() string {
 	addrs, err := net.InterfaceAddrs()
