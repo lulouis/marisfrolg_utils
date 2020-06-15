@@ -155,7 +155,7 @@ func StringToRuneArr(Parameters string) []string {
 }
 
 /// <summary>
-/// 陆帅华万能SQL语句查询
+/// 万能SQL语句查询
 /// </summary>
 func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err error) {
 	//危险语句检查
@@ -184,7 +184,7 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 			cols = columns
 			refs = make([]interface{}, len(cols))
 			for i := range refs {
-				var ref interface{}
+				var ref sql.NullString
 				refs[i] = &ref
 				indexs = append(indexs, i)
 			}

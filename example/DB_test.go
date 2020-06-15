@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -35,8 +36,12 @@ func TestStringToRuneArr(t *testing.T) {
 }
 
 func TestGetDataBySQL(t *testing.T) {
-	db, err := sql.Open("oci8", "username/password@M4DEV")
+	db, _ := sql.Open("oci8", "username/password@M4DEV")
 	defer db.Close()
-	data, _ := marisfrolg_utils.GetDataBySQL("select * from brand ", db)
-	fmt.Println(data)
+	data, _ := marisfrolg_utils.GetDataBySQL("select * from TABLENAME where ROWNUM<10 ", db)
+	for _, v := range data {
+		str, _ := json.Marshal(v)
+		fmt.Println(string(str))
+	}
+
 }
