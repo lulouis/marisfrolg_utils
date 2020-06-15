@@ -2,7 +2,9 @@ package marisfrolg_utils
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -150,4 +152,60 @@ func StringToRuneArr(Parameters string) []string {
 	Parameters = strings.Replace(Parameters, "]", "", -1)
 	Result := strings.Split(Parameters, ",")
 	return Result
+}
+
+/// <summary>
+/// 陆帅华万能SQL语句查询
+/// </summary>
+func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err error) {
+	//危险语句检查
+	if strings.Contains(strings.ToUpper(SQL), `INSERT`) || strings.Contains(strings.ToUpper(SQL), `UPDATE`) || strings.Contains(strings.ToUpper(SQL), `DELETE`) || strings.Contains(strings.ToUpper(SQL), `TRUNCATE`) || strings.Contains(strings.ToUpper(SQL), `GRANT`) {
+		return nil, errors.New("危险语句禁止执行")
+	}
+	if err != nil {
+		return
+	}
+	rows, err := db.Query(SQL)
+	defer rows.Close()
+	if err != nil {
+		return
+	}
+	var (
+		refs   []interface{}
+		cnt    int64 //首行处理
+		cols   []string
+		indexs []int
+	)
+
+	for rows.Next() {
+		if cnt == 0 {
+			columns, _ := rows.Columns()
+			indexs = make([]int, 0, len(columns))
+			cols = columns
+			refs = make([]interface{}, len(cols))
+			for i := range refs {
+				var ref interface{}
+				refs[i] = &ref
+				indexs = append(indexs, i)
+			}
+		}
+
+		if err := rows.Scan(refs...); err != nil {
+			return nil, err
+		}
+		params := make(map[string]interface{}, len(cols))
+		for _, i := range indexs {
+			ref := refs[i]
+			value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullString)
+			if value.Valid {
+				params[cols[i]] = value.String
+			} else {
+				params[cols[i]] = nil
+			}
+		}
+		data = append(data, params)
+		cnt++
+	}
+
+	return
 }
