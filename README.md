@@ -46,6 +46,12 @@ go get github.com/lulouis/marisfrolg_utils
 1、HttpPostOnlyBody(apiURL string, parmbody string, token string) (rs []byte, err error) POST请求带token验证的URL
   测试指令:go test -v -run TestHttpPostOnlyBody Http_test.go
   参数说明：apiURL:请求路径;parmbody:Body参数;token:需要验证的token
+2、HttpGet(ApiURL string, Params url.Values) (rs []byte, err error) get请求链接接参数分离
+  测试指令:go test -v -run TestHttpGet Http_test.go
+  参数说明：ApiURL:请求路径;Parm:请求参数
+3、HttpGetToUrl(ApiURL string) (rs []byte, err error) get请求链接接参数不分离
+    测试指令:go test -v -run TestHttpGetToUrl Http_test.go
+    参数说明：ApiURL:请求路径
 ```
 
 

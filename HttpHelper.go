@@ -2,6 +2,7 @@ package marisfrolg_utils
 
 import (
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -55,4 +56,34 @@ func HttpPostWithReqParamAndToken(reqUrl string, params url.Values, bodyData str
 	}
 	defer res.Body.Close()
 	return respData, err
+}
+// get 网络请求
+func HttpGet(ApiURL string, Params url.Values) (rs []byte, err error) {
+	var Url *url.URL
+	Url, err = url.Parse(ApiURL)
+	if err != nil {
+		log.Printf("解析url错误:\r\n%v", err)
+		return nil, err
+	}
+	//如果参数中有中文参数,这个方法会进行URLEncode
+	Url.RawQuery = Params.Encode()
+	urlstr := Url.String()
+	resp, err := http.Get(urlstr)
+	//fmt.Println(urlstr)
+	if err != nil {
+		//fmt.Println("err:", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
+}
+func HttpGetToUrl(ApiURL string) (rs []byte, err error) {
+	resp, err := http.Get(ApiURL)
+	//fmt.Println(urlstr)
+	if err != nil {
+		//fmt.Println("err:", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
 }
