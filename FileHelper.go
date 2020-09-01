@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/tealeg/xlsx"
+	"image"
+	"image/png"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -35,7 +37,7 @@ func IsCreateDir(path string) (err error) {
 }
 
 //将文件保存到指定目录
-func SaveFileToTempDirectory(isNeedPrefix bool, file *multipart.FileHeader,UploadFile string) (fileName, filePath string, err error) {
+func SaveFileToTempDirectory(isNeedPrefix bool, file *multipart.FileHeader, UploadFile string) (fileName, filePath string, err error) {
 	var (
 		dir       string
 		existsDir bool
@@ -43,7 +45,7 @@ func SaveFileToTempDirectory(isNeedPrefix bool, file *multipart.FileHeader,Uploa
 		reader    multipart.File
 	)
 	dir, _ = filepath.Abs(filepath.Dir(os.Args[0]))
-	filePath = strings.Replace(dir, "\\", "/", -1) + "/"+UploadFile
+	filePath = strings.Replace(dir, "\\", "/", -1) + "/" + UploadFile
 	existsDir, _ = PathlogExistsFile(filePath)
 	if !existsDir {
 		os.Mkdir(filePath, os.ModePerm)
@@ -85,7 +87,7 @@ func LoadFile(filename string, v interface{}) (err error) {
 	return
 }
 
-	//检查制定路径下是否存在文件如果不存在直接创建文件夹
+//检查制定路径下是否存在文件如果不存在直接创建文件夹
 func PathlogExistsFile(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -164,4 +166,34 @@ func getFileSize(path string) int64 {
 func exists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil || os.IsExist(err)
+}
+//创建图片
+func CreateImg(filename string, img image.Image) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	err = png.Encode(file, img)
+	if err != nil {
+		return err
+	}
+	file.Close()
+	return nil
+}
+
+//将文件转换成byte[]
+func FileToByte(f *os.File) ([]byte,error) {
+	var payload []byte
+	for {
+		buf := make([]byte, 1024)
+		switch nr, err := f.Read(buf[:]); true {
+		case nr < 0:
+			return nil,err
+			os.Exit(1)
+		case nr == 0: // EOF
+			return payload,nil
+		case nr > 0:
+			payload = append(payload, buf...)
+		}
+	}
 }
