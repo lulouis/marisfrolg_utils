@@ -167,9 +167,17 @@ func exists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil || os.IsExist(err)
 }
+
 //创建图片
-func CreateImg(filename string, img image.Image) error {
-	file, err := os.Create(filename)
+//filePath ：文件路径
+//filename：文件名称
+//img 图片属性
+func CreateImg(filePath string, fileName string, img image.Image) error {
+	_, err := PathlogExistsFile(filePath)
+	if err != nil {
+		return err
+	}
+	file, err := os.Create(filePath +"/"+ fileName)
 	if err != nil {
 		return err
 	}
@@ -182,16 +190,16 @@ func CreateImg(filename string, img image.Image) error {
 }
 
 //将文件转换成byte[]
-func FileToByte(f *os.File) ([]byte,error) {
+func FileToByte(f *os.File) ([]byte, error) {
 	var payload []byte
 	for {
 		buf := make([]byte, 1024)
 		switch nr, err := f.Read(buf[:]); true {
 		case nr < 0:
-			return nil,err
+			return nil, err
 			os.Exit(1)
 		case nr == 0: // EOF
-			return payload,nil
+			return payload, nil
 		case nr > 0:
 			payload = append(payload, buf...)
 		}

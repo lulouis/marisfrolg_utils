@@ -41,7 +41,8 @@ go get github.com/lulouis/marisfrolg_utils
   参数说明:path:文件夹路径
 2、CreateImg(filename string, img image.Image) error 创建图片
   测试指令:go test -v -run TestCreateImg  File_test.go
-  参数说明:filename:文件名称+路径
+  参数说明: filePath:文件路径
+          fileName:文件名称
           img:图片属性
 3、FileToByte(f *os.File) ([]byte,error)将文件转换成byte[]
   测试指令:go test -v -run FileToByte  File_test.go
