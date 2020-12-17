@@ -80,7 +80,7 @@ func SendShortMessage(regionId string, accessKeyId string, accessKeySecret strin
 
 	response, err := client.ProcessCommonRequest(request)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 	fmt.Print(response.GetHttpContentString())
 
