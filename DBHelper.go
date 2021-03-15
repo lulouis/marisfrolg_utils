@@ -1,9 +1,11 @@
 package marisfrolg_utils
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgx"
 	"reflect"
 	"strings"
 )
@@ -154,9 +156,7 @@ func StringToRuneArr(Parameters string) []string {
 	return Result
 }
 
-/// <summary>
-/// 万能SQL语句查询
-/// </summary>
+//万能SQL语句查询 专门用于oracle
 func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err error) {
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(SQL), `INSERT`) || strings.Contains(strings.ToUpper(SQL), `UPDATE`) || strings.Contains(strings.ToUpper(SQL), `DELETE`) || strings.Contains(strings.ToUpper(SQL), `TRUNCATE`) || strings.Contains(strings.ToUpper(SQL), `GRANT`) {
@@ -177,15 +177,26 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 		indexs []int
 	)
 
+	data = make([]map[string]interface{}, 0)
+	columns, _ := rows.Columns()
+	columnTypes, _ := rows.ColumnTypes()
 	for rows.Next() {
 		if cnt == 0 {
-			columns, _ := rows.Columns()
 			indexs = make([]int, 0, len(columns))
 			cols = columns
 			refs = make([]interface{}, len(cols))
 			for i := range refs {
-				var ref sql.NullString
-				refs[i] = &ref
+				typeName := columnTypes[i].DatabaseTypeName()
+				if typeName == "SQLT_NUM" {
+					var ref sql.NullFloat64
+					refs[i] = &ref
+				} else if typeName == "SQLT_DAT" {
+					var ref sql.NullTime
+					refs[i] = &ref
+				} else {
+					var ref sql.NullString
+					refs[i] = &ref
+				}
 				indexs = append(indexs, i)
 			}
 		}
@@ -196,16 +207,64 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 		params := make(map[string]interface{}, len(cols))
 		for _, i := range indexs {
 			ref := refs[i]
-			value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullString)
-			if value.Valid {
-				params[cols[i]] = value.String
+			typeName := columnTypes[i].DatabaseTypeName()
+			if typeName == "SQLT_NUM" {
+				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullFloat64)
+				if value.Valid {
+					params[cols[i]] = value.Float64
+				} else {
+					params[cols[i]] = nil
+				}
+			} else if typeName == "SQLT_DAT" {
+				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullTime)
+				if value.Valid {
+					params[cols[i]] = value.Time.Format("2006-01-02T15:04:05")
+				} else {
+					params[cols[i]] = nil
+				}
 			} else {
-				params[cols[i]] = nil
+				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullString)
+				if value.Valid {
+					params[cols[i]] = value.String
+				} else {
+					params[cols[i]] = nil
+				}
 			}
 		}
 		data = append(data, params)
 		cnt++
 	}
 
+	return data, nil
+}
+
+//万能查询PG数据库
+func GetDataByPostgresSql(querySql string,conn *pgx.Conn )(data []map[string]interface{}, err error){
+	//危险语句检查
+	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `)||
+		strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) ||
+		strings.Contains(strings.ToUpper(querySql), `GRANT `) {
+		return nil, errors.New("危险语句禁止执行")
+	}
+	rows, err := conn.Query(context.Background(), querySql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	fields := rows.FieldDescriptions()
+	for rows.Next() {
+		values, err := rows.Values()
+		if err != nil {
+			return nil, err
+		}
+		dataItem := make(map[string]interface{}, 0)
+		for i, v := range fields {
+			dataItem[string(v.Name)] = values[i]
+		}
+		data = append(data, dataItem)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
 	return
 }
