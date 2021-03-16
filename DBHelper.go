@@ -5,8 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/SAP/go-hdb/driver"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx"
+	"math/big"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -239,6 +243,7 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 }
 
 //万能查询PG数据库
+//liqifeng 解决了读取Numeric类型数据不正常问题
 func GetDataByPostgresSql(querySql string,conn *pgx.Conn )(data []map[string]interface{}, err error){
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `)||
@@ -259,7 +264,14 @@ func GetDataByPostgresSql(querySql string,conn *pgx.Conn )(data []map[string]int
 		}
 		dataItem := make(map[string]interface{}, 0)
 		for i, v := range fields {
-			dataItem[string(v.Name)] = values[i]
+			value,ok := values[i].(pgtype.Numeric)
+			if ok{
+				driverValue,_:=value.Value()
+				_value:=fmt.Sprintf(`%v`,driverValue)
+				dataItem[string(v.Name)] ,_= strconv.ParseFloat(_value,64)
+			}else{
+				dataItem[string(v.Name)] = values[i]
+			}
 		}
 		data = append(data, dataItem)
 	}
@@ -267,4 +279,106 @@ func GetDataByPostgresSql(querySql string,conn *pgx.Conn )(data []map[string]int
 		return nil, rows.Err()
 	}
 	return
+}
+
+//万能hana查询语句
+func GetDataByHanaSql(querySql string,db *sql.DB) ([]map[string]interface{}, error) {
+	//危险语句检查
+	if strings.Contains(strings.ToUpper(querySql), `INSERT`) || strings.Contains(strings.ToUpper(querySql), `UPDATE`) || strings.Contains(strings.ToUpper(querySql), `DELETE`) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE`) || strings.Contains(strings.ToUpper(querySql), `GRANT`) {
+		return nil, errors.New("危险语句禁止执行")
+	}
+	rows, err := db.Query(querySql)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	var (
+		refs   []interface{}
+		cnt    int64 //首行处理
+		cols   []string
+		indexs []int
+	)
+	data := make([]map[string]interface{}, 0)
+	columns, _ := rows.Columns()
+	columnTypes, _ := rows.ColumnTypes()
+	for rows.Next() {
+		if cnt == 0 {
+			indexs = make([]int, 0, len(columns))
+			cols = columns
+			refs = make([]interface{}, len(cols))
+			for i := range refs {
+				typeName := columnTypes[i].DatabaseTypeName()
+				if typeName == "DECIMAL" {
+					var dec driver.Decimal
+					var ref driver.NullDecimal
+					ref.Decimal = &dec
+					refs[i] = &ref
+				} else if typeName == "DOUBLE" {
+					var ref sql.NullFloat64
+					refs[i] = &ref
+				} else if typeName == "INTERAGE" {
+					var ref sql.NullInt64
+					refs[i] = &ref
+				} else if typeName == "DATE" {
+					var ref sql.NullTime
+					refs[i] = &ref
+				} else {
+					var ref sql.NullString
+					refs[i] = &ref
+				}
+				indexs = append(indexs, i)
+			}
+		}
+
+		if err := rows.Scan(refs...); err != nil {
+			return nil, err
+		}
+		params := make(map[string]interface{}, len(cols))
+
+		for _, i := range indexs {
+			ref := refs[i]
+
+			typeName := columnTypes[i].DatabaseTypeName()
+			if typeName == "DECIMAL" {
+				if nullDecimal := reflect.Indirect(reflect.ValueOf(ref)).Interface().(driver.NullDecimal); nullDecimal.Valid {
+					decimal, _ := (*big.Rat)(nullDecimal.Decimal).Float64()
+					params[cols[i]] = decimal
+				} else {
+					params[cols[i]] = nil
+				}
+			} else if typeName == "DOUBLE" {
+				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullFloat64)
+				if value.Valid {
+					params[cols[i]] = value.Float64
+				} else {
+					params[cols[i]] = nil
+				}
+			} else if typeName == "INTERAGE" {
+				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullInt32)
+				if value.Valid {
+					params[cols[i]] = value.Int32
+				} else {
+					params[cols[i]] = nil
+				}
+			} else if typeName == "DATE" {
+				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullTime)
+				if value.Valid {
+					params[cols[i]] = value.Time.Format("2006-01-02T15:04:05")
+				} else {
+					params[cols[i]] = nil
+				}
+			} else {
+				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullString)
+				if value.Valid {
+					params[cols[i]] = value.String
+				} else {
+					params[cols[i]] = nil
+				}
+			}
+		}
+		data = append(data, params)
+		cnt++
+	}
+
+	return data, nil
 }
