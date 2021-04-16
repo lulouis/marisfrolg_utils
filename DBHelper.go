@@ -25,19 +25,18 @@ import (
 /// <param name="SqlList">Sql 列表</param>
 /// <returns>说明：MongoDB 禁止使用，其他数据库自行斟酌（目前支持Oracle）
 ///</returns>
-func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) error {
+func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) (err error) {
 	var (
-		err    error
 		tx     *sql.Tx
 		result sql.Result
-		aff    int64
+		//aff    int64
 	)
 	tx, err = db.Begin() //开启事务
 	if err != nil {
 		goto ERR
 	}
-	for _, v := range SqlList {
-		result, err = tx.Exec(v)
+	for i := 0; i < len(SqlList); i++ {
+		result, err = tx.Exec(SqlList[i])
 		if err != nil {
 			goto ERR
 		}
@@ -45,19 +44,17 @@ func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) error {
 			err = fmt.Errorf(`事务执行出错`)
 			goto ERR
 		}
-		aff, err = result.RowsAffected()
+		_, err = result.RowsAffected()
 		if err != nil {
 			goto ERR
 		}
-		if aff == 0 {
-		}
 	}
 	tx.Commit()
-	return nil
+	return
 ERR:
 	//回滚
 	tx.Rollback()
-	return err
+	return
 }
 
 //SQL IN()的查询里不能超过1000列，将大于1000列的以900为间隔分开组装
