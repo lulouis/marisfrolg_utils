@@ -25,19 +25,18 @@ import (
 /// <param name="SqlList">Sql 列表</param>
 /// <returns>说明：MongoDB 禁止使用，其他数据库自行斟酌（目前支持Oracle）
 ///</returns>
-func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) error {
+func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) (err error) {
 	var (
-		err    error
 		tx     *sql.Tx
 		result sql.Result
-		aff    int64
+		//aff    int64
 	)
 	tx, err = db.Begin() //开启事务
 	if err != nil {
 		goto ERR
 	}
-	for _, v := range SqlList {
-		result, err = tx.Exec(v)
+	for i := 0; i < len(SqlList); i++ {
+		result, err = tx.Exec(SqlList[i])
 		if err != nil {
 			goto ERR
 		}
@@ -45,19 +44,17 @@ func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) error {
 			err = fmt.Errorf(`事务执行出错`)
 			goto ERR
 		}
-		aff, err = result.RowsAffected()
+		_, err = result.RowsAffected()
 		if err != nil {
 			goto ERR
 		}
-		if aff == 0 {
-		}
 	}
 	tx.Commit()
-	return nil
+	return
 ERR:
 	//回滚
 	tx.Rollback()
-	return err
+	return
 }
 
 //SQL IN()的查询里不能超过1000列，将大于1000列的以900为间隔分开组装
@@ -163,7 +160,7 @@ func StringToRuneArr(Parameters string) []string {
 //万能SQL语句查询 专门用于oracle
 func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err error) {
 	//危险语句检查
-	if strings.Contains(strings.ToUpper(SQL), `INSERT`) || strings.Contains(strings.ToUpper(SQL), `UPDATE`) || strings.Contains(strings.ToUpper(SQL), `DELETE`) || strings.Contains(strings.ToUpper(SQL), `TRUNCATE`) || strings.Contains(strings.ToUpper(SQL), `GRANT`) {
+	if strings.Contains(strings.ToUpper(SQL), `INSERT `) || strings.Contains(strings.ToUpper(SQL), `UPDATE `) || strings.Contains(strings.ToUpper(SQL), `DELETE `) || strings.Contains(strings.ToUpper(SQL), `TRUNCATE `) || strings.Contains(strings.ToUpper(SQL), `GRANT `) {
 		return nil, errors.New("危险语句禁止执行")
 	}
 	if err != nil {
@@ -284,7 +281,7 @@ func GetDataByPostgresSql(querySql string,conn *pgx.Conn )(data []map[string]int
 //万能hana查询语句
 func GetDataByHanaSql(querySql string,db *sql.DB) ([]map[string]interface{}, error) {
 	//危险语句检查
-	if strings.Contains(strings.ToUpper(querySql), `INSERT`) || strings.Contains(strings.ToUpper(querySql), `UPDATE`) || strings.Contains(strings.ToUpper(querySql), `DELETE`) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE`) || strings.Contains(strings.ToUpper(querySql), `GRANT`) {
+	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) || strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) || strings.Contains(strings.ToUpper(querySql), `GRANT `) {
 		return nil, errors.New("危险语句禁止执行")
 	}
 	rows, err := db.Query(querySql)

@@ -16,7 +16,7 @@ type WorkFlowCase struct {
 	//流程模板代码
 	TemplateCode string `bson:"templateCode"`
 	//业务内容
-	BusinessObject interface{} `bson:"businessObject"`
+	BusinessObject map[string]interface{} `bson:"businessObject"`
 	//创建人工号
 	UserCode string `bson:"usercode"`
 	//创建人
@@ -39,6 +39,19 @@ type Action struct {
 	ActionName string `bson:"actionName"`
 	//描述
 	ActionDesc string `bson:"actionDesc"`
+}
+
+//动作附加操作
+type ActionAddition struct {
+	//附加类型,INSERT(追加一个节点)，UPDATE(修改一个节点)，DELETE(删除一个节点)
+	OperateType string `bson:"OperateType"`
+	//单个节点定义
+	Node Node `bson:"Node"`
+}
+
+type NodeEx struct {
+	Node
+	ActionAdditions []ActionAddition
 }
 
 //审批节点
@@ -69,10 +82,11 @@ type Node struct {
 	ActionName string `bson:"actionName"`
 	//最后动作描述
 	ActionDesc string `bson:"actionDesc"`
-	//0未执行，1动作执行，2逻辑上跳过，2逻辑上关闭
+	//0未执行，1动作执行，2逻辑上跳过，3逻辑上关闭
 	Flag int `bson:"flag"`
 	//打回到哪个Node
 	BackNodeName string `bson:"BackNodeName"`
+	//打回节点描述
 	BackNodeDesc string `bson:"BackNodeDesc"`
 }
 
