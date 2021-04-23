@@ -13,8 +13,7 @@ var conn *amqp.Connection
 
 func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName string, messageBody interface{}) (err error) {
 	// 连接RabbitMQ服务器
-	err = conn.Properties.Validate()
-	if conn == nil || err != nil {
+	if conn == nil {
 		conn, err = amqp.Dial(rabbitmq_conn)
 		if err != nil {
 			err = errors.New("连接RabbitMQ网络失败")
