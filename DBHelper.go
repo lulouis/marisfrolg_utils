@@ -188,10 +188,10 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 			refs = make([]interface{}, len(cols))
 			for i := range refs {
 				typeName := columnTypes[i].DatabaseTypeName()
-				if typeName == "SQLT_NUM" {
+				if typeName == "SQLT_NUM" || typeName == "SQLT_BDOUBLE" || typeName == "SQLT_INT" || typeName == "SQLT_FLT" ||typeName == "SQLT_BFLOAT" {
 					var ref sql.NullFloat64
 					refs[i] = &ref
-				} else if typeName == "SQLT_DAT" {
+				} else if typeName == "SQLT_DAT" || typeName == "SQLT_TIMESTAMP" || typeName == "SQLT_TIMESTAMP_TZ" {
 					var ref sql.NullTime
 					refs[i] = &ref
 				} else {
@@ -209,14 +209,14 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 		for _, i := range indexs {
 			ref := refs[i]
 			typeName := columnTypes[i].DatabaseTypeName()
-			if typeName == "SQLT_NUM" {
+			if typeName == "SQLT_NUM" || typeName == "SQLT_BDOUBLE" || typeName == "SQLT_INT" || typeName == "SQLT_FLT" ||typeName == "SQLT_BFLOAT" {
 				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullFloat64)
 				if value.Valid {
 					params[cols[i]] = value.Float64
 				} else {
 					params[cols[i]] = nil
 				}
-			} else if typeName == "SQLT_DAT" {
+			} else if typeName == "SQLT_DAT" || typeName == "SQLT_TIMESTAMP" || typeName == "SQLT_TIMESTAMP_TZ" {
 				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullTime)
 				if value.Valid {
 					params[cols[i]] = value.Time.Format("2006-01-02T15:04:05")
