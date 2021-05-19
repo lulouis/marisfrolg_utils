@@ -1,9 +1,10 @@
-package main
+package testing
 
 import (
 	"fmt"
-	"github.com/lulouis/marisfrolg_utils"
 	"testing"
+
+	"github.com/lulouis/marisfrolg_utils"
 )
 
 func TestLog(t *testing.T) {

@@ -1,11 +1,12 @@
-package main
+package testing
 
 import (
 	"fmt"
-	"github.com/lulouis/marisfrolg_utils"
 	"image"
 	"os"
 	"testing"
+
+	"github.com/lulouis/marisfrolg_utils"
 )
 
 func TestPathlogExistsFile(t *testing.T) {

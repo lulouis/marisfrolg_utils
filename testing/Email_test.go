@@ -1,17 +1,18 @@
-package main
+package testing
 
 import (
 	"fmt"
-	"github.com/lulouis/marisfrolg_utils"
 	"testing"
+
+	"github.com/lulouis/marisfrolg_utils"
 )
 
 func TestSendMail(t *testing.T) {
 	var (
-		mailTo []string
-		FileNameList    []string
+		mailTo       []string
+		FileNameList []string
 	)
-	mailTo=append(mailTo,"test@qq.com")
+	mailTo = append(mailTo, "test@qq.com")
 	emailServer := new(marisfrolg_utils.EmailServer)
 	emailServer.User = "test@qq.com"
 	emailServer.PassWord = "123456"
@@ -23,6 +24,6 @@ func TestSendMail(t *testing.T) {
 	emailRequest.Subject = "主题"
 	emailRequest.Body = "正文"
 	emailRequest.FileUrl = FileNameList
-	var r=emailServer.SendMail(emailRequest)
+	var r = emailServer.SendMail(emailRequest)
 	fmt.Println(r)
 }
