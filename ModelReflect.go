@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-func GetModelProperty(model interface{}, propertyName string) (result interface{}, err error) {
+func GetModelProperty(model interface{}, propertyName string) (result interface{}) {
 	types := reflect.TypeOf(model)
 	vals := reflect.ValueOf(model)
 	for i := 0; i < types.NumField(); i++ {
