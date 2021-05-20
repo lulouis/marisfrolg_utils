@@ -12,11 +12,12 @@ type User struct {
 	Id      int
 	Age     int
 	PoMoney float64
+	IdCard  string
 }
 
 // go test -v -run GetModelProperty .\testing\ModelReflect_test.go
 func TestGetModelProperty(t *testing.T) {
-	var ori_calc_formula = "(User.Id + User.Age) / User.PoMoney * 0.2"
+	var ori_calc_formula = "(User.Id + User.Age) / User.PoMoney * 0.2 + 5"
 	var calc_formula = ""
 
 	//对象实体
@@ -24,6 +25,7 @@ func TestGetModelProperty(t *testing.T) {
 	user1.Id = 4
 	user1.Age = 100
 	user1.PoMoney = 100.05
+	user1.IdCard = "my passport"
 	//值类型
 	user2 := User{}
 	user2.Id = 3
