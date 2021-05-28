@@ -28,6 +28,8 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 		return
 	}
 	defer ch.Close()
+	//交换机检查x-dead-letter-exchange-all-business
+	ch.ExchangeDeclare("x-dead-letter-exchange-all-business", "direct", true, false, false, false, nil)
 	// 创建本业务死信
 	ch.QueueDeclare(
 		businessName+"_dead", // 队列名称
