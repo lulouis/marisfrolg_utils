@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/SAP/go-hdb/driver"
 	"github.com/jackc/pgtype"
@@ -221,7 +220,7 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 			} else if typeName == "SQLT_DAT" || typeName == "SQLT_TIMESTAMP" || typeName == "SQLT_TIMESTAMP_TZ" {
 				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullTime)
 				if value.Valid {
-					params[cols[i]] = value.Time.In(time.UTC).Format(time.RFC3339)
+					params[cols[i]] = value.Time.Format("2006-01-02T15:04:05")
 				} else {
 					params[cols[i]] = nil
 				}
