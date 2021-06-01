@@ -5,13 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/SAP/go-hdb/driver"
-	"github.com/jackc/pgtype"
-	"github.com/jackc/pgx"
 	"math/big"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/SAP/go-hdb/driver"
+	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx"
 )
 
 /*
@@ -188,7 +190,7 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 			refs = make([]interface{}, len(cols))
 			for i := range refs {
 				typeName := columnTypes[i].DatabaseTypeName()
-				if typeName == "SQLT_NUM" || typeName == "SQLT_BDOUBLE" || typeName == "SQLT_INT" || typeName == "SQLT_FLT" ||typeName == "SQLT_BFLOAT" {
+				if typeName == "SQLT_NUM" || typeName == "SQLT_BDOUBLE" || typeName == "SQLT_INT" || typeName == "SQLT_FLT" || typeName == "SQLT_BFLOAT" {
 					var ref sql.NullFloat64
 					refs[i] = &ref
 				} else if typeName == "SQLT_DAT" || typeName == "SQLT_TIMESTAMP" || typeName == "SQLT_TIMESTAMP_TZ" {
@@ -209,7 +211,7 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 		for _, i := range indexs {
 			ref := refs[i]
 			typeName := columnTypes[i].DatabaseTypeName()
-			if typeName == "SQLT_NUM" || typeName == "SQLT_BDOUBLE" || typeName == "SQLT_INT" || typeName == "SQLT_FLT" ||typeName == "SQLT_BFLOAT" {
+			if typeName == "SQLT_NUM" || typeName == "SQLT_BDOUBLE" || typeName == "SQLT_INT" || typeName == "SQLT_FLT" || typeName == "SQLT_BFLOAT" {
 				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullFloat64)
 				if value.Valid {
 					params[cols[i]] = value.Float64
@@ -219,7 +221,7 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 			} else if typeName == "SQLT_DAT" || typeName == "SQLT_TIMESTAMP" || typeName == "SQLT_TIMESTAMP_TZ" {
 				value := reflect.Indirect(reflect.ValueOf(ref)).Interface().(sql.NullTime)
 				if value.Valid {
-					params[cols[i]] = value.Time.Format("2006-01-02T15:04:05")
+					params[cols[i]] = value.Time.In(time.UTC).Format(time.RFC3339)
 				} else {
 					params[cols[i]] = nil
 				}
@@ -241,9 +243,9 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 
 //万能查询PG数据库
 //liqifeng 解决了读取Numeric类型数据不正常问题
-func GetDataByPostgresSql(querySql string,conn *pgx.Conn )(data []map[string]interface{}, err error){
+func GetDataByPostgresSql(querySql string, conn *pgx.Conn) (data []map[string]interface{}, err error) {
 	//危险语句检查
-	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `)||
+	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) ||
 		strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) ||
 		strings.Contains(strings.ToUpper(querySql), `GRANT `) {
 		return nil, errors.New("危险语句禁止执行")
@@ -261,12 +263,12 @@ func GetDataByPostgresSql(querySql string,conn *pgx.Conn )(data []map[string]int
 		}
 		dataItem := make(map[string]interface{}, 0)
 		for i, v := range fields {
-			value,ok := values[i].(pgtype.Numeric)
-			if ok{
-				driverValue,_:=value.Value()
-				_value:=fmt.Sprintf(`%v`,driverValue)
-				dataItem[string(v.Name)] ,_= strconv.ParseFloat(_value,64)
-			}else{
+			value, ok := values[i].(pgtype.Numeric)
+			if ok {
+				driverValue, _ := value.Value()
+				_value := fmt.Sprintf(`%v`, driverValue)
+				dataItem[string(v.Name)], _ = strconv.ParseFloat(_value, 64)
+			} else {
 				dataItem[string(v.Name)] = values[i]
 			}
 		}
@@ -279,7 +281,7 @@ func GetDataByPostgresSql(querySql string,conn *pgx.Conn )(data []map[string]int
 }
 
 //万能hana查询语句
-func GetDataByHanaSql(querySql string,db *sql.DB) ([]map[string]interface{}, error) {
+func GetDataByHanaSql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) || strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) || strings.Contains(strings.ToUpper(querySql), `GRANT `) {
 		return nil, errors.New("危险语句禁止执行")
