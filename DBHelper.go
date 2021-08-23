@@ -5,14 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/SAP/go-hdb/driver"
+	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx"
 	"math/big"
 	"reflect"
 	"strconv"
 	"strings"
-
-	"github.com/SAP/go-hdb/driver"
-	"github.com/jackc/pgtype"
-	"github.com/jackc/pgx"
 )
 
 /*
@@ -158,7 +157,7 @@ func StringToRuneArr(Parameters string) []string {
 	return Result
 }
 
-//万能SQL语句查询 专门用于oracle
+// GetDataBySQL 万能SQL语句查询 专门用于oracle
 func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err error) {
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(SQL), `INSERT `) || strings.Contains(strings.ToUpper(SQL), `UPDATE `) || strings.Contains(strings.ToUpper(SQL), `DELETE `) || strings.Contains(strings.ToUpper(SQL), `TRUNCATE `) || strings.Contains(strings.ToUpper(SQL), `GRANT `) {
@@ -240,8 +239,7 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 	return data, nil
 }
 
-//万能查询PG数据库
-//liqifeng 解决了读取Numeric类型数据不正常问题
+// GetDataByPostgresSql 万能查询PG数据库
 func GetDataByPostgresSql(querySql string, conn *pgx.Conn) (data []map[string]interface{}, err error) {
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) ||
@@ -279,7 +277,7 @@ func GetDataByPostgresSql(querySql string, conn *pgx.Conn) (data []map[string]in
 	return
 }
 
-//万能hana查询语句
+// GetDataByHanaSql 万能hana查询语句
 func GetDataByHanaSql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) || strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) || strings.Contains(strings.ToUpper(querySql), `GRANT `) {
@@ -379,4 +377,85 @@ func GetDataByHanaSql(querySql string, db *sql.DB) ([]map[string]interface{}, er
 	}
 
 	return data, nil
+}
+
+// GetDataByMysql 2021-08-23 追加mysql万能查询 日期返回成字符串形式
+func GetDataByMysql(querySql string,db *sql.DB)( []map[string]interface{}, error){
+	//危险语句检查
+	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) || strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) || strings.Contains(strings.ToUpper(querySql), `GRANT `) {
+		return nil,errors.New("危险语句禁止执行")
+	}
+	rows,err:=db.Query(querySql)
+	if err!=nil{
+		return nil,err
+	}
+	defer rows.Close()
+	columns, _ := rows.Columns()
+	columnTypes, _ := rows.ColumnTypes()
+	//fmt.Println(columns)
+	lens:=len(columns)
+	dataList:=make([]map[string]interface{},0)
+	vals:=make([]interface{}, lens)
+	hasFlag:=false
+	for rows.Next() {
+		if !hasFlag {
+			for i:=0 ;i<lens;i++ {
+				typeName := columnTypes[i].DatabaseTypeName()
+				//fmt.Println(typeName)
+				if typeName == "INT"  {
+					vals[i] = &sql.NullInt32{}
+				} else if typeName == "DECIMAL" || typeName == "DOUBLE" || typeName == "FLOAT" {
+					vals[i] = &sql.NullFloat64{}
+				}else if typeName == "DATETIME" || typeName=="TIMESTAMP" || typeName== "DATE"{
+					vals[i] = &sql.NullTime{}
+				}else if typeName=="BOOL"{
+					vals[i] = &sql.NullBool{}
+				}else {
+					vals[i] = &sql.NullString{}
+				}
+			}
+		}
+
+		if err := rows.Scan(vals...); err != nil {
+			return nil, err
+		}
+		temp:=make(map[string]interface{},lens)
+		for i:=0 ;i<lens;i++ {
+			typeName := columnTypes[i].DatabaseTypeName()
+			var v interface{}
+			if typeName == "INT"  {
+				val := vals[i].(*sql.NullInt32)
+				if val.Valid{
+					v = val.Int32
+				}
+
+			} else if typeName == "DECIMAL" || typeName == "DOUBLE" || typeName == "FLOAT" {
+				val := vals[i].(*sql.NullFloat64)
+				if val.Valid{
+					v = val.Float64
+				}
+			}else if typeName == "DATETIME" || typeName=="TIMESTAMP" || typeName== "DATE"{
+				val := vals[i].(*sql.NullTime)
+				if val.Valid{
+					v = val.Time.Format("2006-01-02 15:04:05")
+					//v,_ = time.ParseInLocation("2006-01-02 15:04:05", val.Time.Format("2006-01-02 15:04:05"), time.Local)
+				}
+			}else if typeName=="BOOL"{
+				val := vals[i].(*sql.NullBool)
+				if val.Valid {
+					v = val.Bool
+				}
+			}else {
+				val := vals[i].(*sql.NullString)
+				if val.Valid{
+					v = val.String
+				}
+			}
+			temp[columns[i]] = v
+
+		}
+		dataList = append(dataList,temp)
+		hasFlag = true
+	}
+	return dataList,err
 }

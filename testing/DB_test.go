@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/lulouis/marisfrolg_utils"
 	_ "github.com/mattn/go-oci8"
 )
@@ -42,6 +43,35 @@ func TestGetDataBySQL(t *testing.T) {
 	for _, v := range data {
 		str, _ := json.Marshal(v)
 		fmt.Println(string(str))
+	}
+
+}
+
+func TestGetMysqlDataBySql(t *testing.T) {
+	//refs := make([]interface{}, 10)
+	//for i,v := range refs {
+	//	fmt.Println(i,v)
+	//}
+	db, err := sql.Open("mysql", "username:password(id:port)/yourDbName?charset=utf8&parseTime=true&loc=Local")
+	if err!=nil{
+		fmt.Println(err)
+		return
+	}
+	defer db.Close()
+	if err  = db.Ping();err!=nil{
+		fmt.Println(err)
+		return
+	}
+	data, err := marisfrolg_utils.GetDataByMysql("select * from PRICE where MAT_ID =139835", db)
+	if err!=nil{
+		fmt.Println(err)
+		return
+	}
+	for _,v:=range data{
+		fmt.Println(v)
+		for k,v1:=range v{
+			fmt.Println(k,v1)
+		}
 	}
 
 }
