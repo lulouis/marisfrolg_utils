@@ -402,7 +402,7 @@ func GetDataByMysql(querySql string,db *sql.DB)( []map[string]interface{}, error
 			for i:=0 ;i<lens;i++ {
 				typeName := columnTypes[i].DatabaseTypeName()
 				//fmt.Println(typeName)
-				if typeName == "INT"  {
+				if strings.Contains(typeName ,"INT") {
 					vals[i] = &sql.NullInt32{}
 				} else if typeName == "DECIMAL" || typeName == "DOUBLE" || typeName == "FLOAT" {
 					vals[i] = &sql.NullFloat64{}
@@ -423,7 +423,7 @@ func GetDataByMysql(querySql string,db *sql.DB)( []map[string]interface{}, error
 		for i:=0 ;i<lens;i++ {
 			typeName := columnTypes[i].DatabaseTypeName()
 			var v interface{}
-			if typeName == "INT"  {
+			if strings.Contains(typeName ,"INT") {
 				val := vals[i].(*sql.NullInt32)
 				if val.Valid{
 					v = val.Int32
