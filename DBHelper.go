@@ -8,6 +8,7 @@ import (
 	"github.com/SAP/go-hdb/driver"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgxpool"
 	"math/big"
 	"reflect"
 	"strconv"
@@ -276,6 +277,45 @@ func GetDataByPostgresSql(querySql string, conn *pgx.Conn) (data []map[string]in
 	}
 	return
 }
+
+// GetDataByPostgresSqlByPgxPool 使用pgx连接postgresql进行连接池查询 线程安全
+func GetDataByPostgresSqlByPgxPool(querySql string, conn *pgxpool.Pool) (data []map[string]interface{}, err error) {
+	//危险语句检查
+	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) ||
+		strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) ||
+		strings.Contains(strings.ToUpper(querySql), `GRANT `) {
+		return nil, errors.New("危险语句禁止执行")
+	}
+	rows, err := conn.Query(context.Background(), querySql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	fields := rows.FieldDescriptions()
+	for rows.Next() {
+		values, err := rows.Values()
+		if err != nil {
+			return nil, err
+		}
+		dataItem := make(map[string]interface{}, 0)
+		for i, v := range fields {
+			value, ok := values[i].(pgtype.Numeric)
+			if ok {
+				driverValue, _ := value.Value()
+				_value := fmt.Sprintf(`%v`, driverValue)
+				dataItem[string(v.Name)], _ = strconv.ParseFloat(_value, 64)
+			} else {
+				dataItem[string(v.Name)] = values[i]
+			}
+		}
+		data = append(data, dataItem)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return
+}
+
 
 // GetDataByHanaSql 万能hana查询语句
 func GetDataByHanaSql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
