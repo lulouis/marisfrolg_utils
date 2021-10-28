@@ -319,22 +319,22 @@ func GetDataByPostgresSqlByPgxPool(querySql string, conn *pgxpool.Pool) (data []
 
 // GetDataByHanaSql 万能hana查询语句
 func GetDataByHanaSql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
+	data := make([]map[string]interface{}, 0)
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) || strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) || strings.Contains(strings.ToUpper(querySql), `GRANT `) {
-		return nil, errors.New("危险语句禁止执行")
+		return data, errors.New("危险语句禁止执行")
 	}
 	rows, err := db.Query(querySql)
-	defer rows.Close()
 	if err != nil {
-		return nil, err
+		return data, err
 	}
+	defer rows.Close()
 	var (
 		refs   []interface{}
 		cnt    int64 //首行处理
 		cols   []string
 		indexs []int
 	)
-	data := make([]map[string]interface{}, 0)
 	columns, _ := rows.Columns()
 	columnTypes, _ := rows.ColumnTypes()
 	for rows.Next() {
