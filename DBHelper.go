@@ -499,3 +499,83 @@ func GetDataByMysql(querySql string,db *sql.DB)( []map[string]interface{}, error
 	}
 	return dataList,err
 }
+
+//调整日期加上时区
+func GetDataInZoneByMysql(querySql string,db *sql.DB)( []map[string]interface{}, error){
+	//危险语句检查
+	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) || strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) || strings.Contains(strings.ToUpper(querySql), `GRANT `) {
+		return nil,errors.New("危险语句禁止执行")
+	}
+	rows,err:=db.Query(querySql)
+	if err!=nil{
+		return nil,err
+	}
+	defer rows.Close()
+	columns, _ := rows.Columns()
+	columnTypes, _ := rows.ColumnTypes()
+	//fmt.Println(columns)
+	lens:=len(columns)
+	dataList:=make([]map[string]interface{},0)
+	vals:=make([]interface{}, lens)
+	hasFlag:=false
+	for rows.Next() {
+		if !hasFlag {
+			for i:=0 ;i<lens;i++ {
+				typeName := columnTypes[i].DatabaseTypeName()
+				//fmt.Println(typeName)
+				if strings.Contains(typeName ,"INT") {
+					vals[i] = &sql.NullInt32{}
+				} else if typeName == "DECIMAL" || typeName == "DOUBLE" || typeName == "FLOAT" {
+					vals[i] = &sql.NullFloat64{}
+				}else if typeName == "DATETIME" || typeName=="TIMESTAMP" || typeName== "DATE"{
+					vals[i] = &sql.NullTime{}
+				}else if typeName=="BOOL"{
+					vals[i] = &sql.NullBool{}
+				}else {
+					vals[i] = &sql.NullString{}
+				}
+			}
+		}
+
+		if err := rows.Scan(vals...); err != nil {
+			return nil, err
+		}
+		temp:=make(map[string]interface{},lens)
+		for i:=0 ;i<lens;i++ {
+			typeName := columnTypes[i].DatabaseTypeName()
+			var v interface{}
+			if strings.Contains(typeName ,"INT") {
+				val := vals[i].(*sql.NullInt32)
+				if val.Valid{
+					v = val.Int32
+				}
+
+			} else if typeName == "DECIMAL" || typeName == "DOUBLE" || typeName == "FLOAT" {
+				val := vals[i].(*sql.NullFloat64)
+				if val.Valid{
+					v = val.Float64
+				}
+			}else if typeName == "DATETIME" || typeName=="TIMESTAMP" || typeName== "DATE"{
+				val := vals[i].(*sql.NullTime)
+				if val.Valid{
+					v = val.Time.Format("2006-01-02T15:04:05Z") //已知数据库时区为0时区
+				}
+			}else if typeName=="BOOL"{
+				val := vals[i].(*sql.NullBool)
+				if val.Valid {
+					v = val.Bool
+				}
+			}else {
+				val := vals[i].(*sql.NullString)
+				if val.Valid{
+					v = val.String
+				}
+			}
+			temp[columns[i]] = v
+
+		}
+		dataList = append(dataList,temp)
+		hasFlag = true
+	}
+	return dataList,err
+}
