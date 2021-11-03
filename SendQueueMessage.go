@@ -38,7 +38,9 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 		conn, err = amqp.Dial(rabbitmq_conn)
 		if err != nil {
 			//记录mongo日志
-			c.Insert(issue)
+			if currentMode == "PRD" {
+				c.Insert(issue)
+			}
 			err = errors.New("连接RabbitMQ网络失败")
 			return
 		}
@@ -48,7 +50,9 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 	ch, err := conn.Channel()
 	if err != nil {
 		//记录mongo日志
-		c.Insert(issue)
+		if currentMode == "PRD" {
+			c.Insert(issue)
+		}
 		err = errors.New("打开RabbitMQ通道时失败")
 		return
 	}
@@ -77,7 +81,9 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 	)
 	if err != nil {
 		//记录mongo日志
-		c.Insert(issue)
+		if currentMode == "PRD" {
+			c.Insert(issue)
+		}
 		err = errors.New("连接" + queueName + "队列时失败")
 		return
 	}
@@ -86,7 +92,9 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 	body, err := json.Marshal(messageBody)
 	if err != nil {
 		//记录mongo日志
-		c.Insert(issue)
+		if currentMode == "PRD" {
+			c.Insert(issue)
+		}
 		err = errors.New("消息序列化失败")
 		return
 	}
@@ -106,7 +114,9 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 	)
 	if err != nil {
 		//记录mongo日志
-		c.Insert(issue)
+		if currentMode == "PRD" {
+			c.Insert(issue)
+		}
 		err = errors.New(queueName + "发送队列消息失败")
 		return
 	}
