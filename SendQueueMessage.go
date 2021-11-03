@@ -7,15 +7,40 @@ import (
 	"time"
 
 	"github.com/streadway/amqp"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var conn *amqp.Connection
 
-func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName string, messageBody interface{}) (err error) {
+func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName string, messageBody interface{}, mongoSession *mgo.Session) (err error) {
+	c := mongoSession.DB("ODSAPP").C("QueueIssue")
+	issue := bson.M{}
+	issue["_id"] = bson.NewObjectId()
+	// 声明一个队列
+	queueName := ""
+	switch currentMode {
+	case "DEV":
+		queueName = businessName + "_dev"
+	case "TEST":
+		queueName = businessName + "_dev"
+	case "PRD":
+		queueName = businessName + "_prd"
+		issue["queueName"] = queueName
+		issue["queueDualConn"] = rabbitmq_conn
+		issue["queueMessage"] = messageBody
+		issue["currentMode"] = currentMode
+		issue["createTime"] = time.Now()
+		issue["finishedStatus"] = 0 //0未处理,1已完结,2取消处理
+	}
 	// 连接RabbitMQ服务器
 	if conn == nil {
 		conn, err = amqp.Dial(rabbitmq_conn)
 		if err != nil {
+			//记录mongo日志
+			if currentMode == "PRD" {
+				c.Insert(issue)
+			}
 			err = errors.New("连接RabbitMQ网络失败")
 			return
 		}
@@ -24,6 +49,10 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 	// 创建一个channel
 	ch, err := conn.Channel()
 	if err != nil {
+		//记录mongo日志
+		if currentMode == "PRD" {
+			c.Insert(issue)
+		}
 		err = errors.New("打开RabbitMQ通道时失败")
 		return
 	}
@@ -39,16 +68,7 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 		false, nil,
 	)
 	ch.QueueBind(businessName+"_dead", businessName+"_dead", "x-dead-letter-exchange-all-business", false, nil)
-	// 声明一个队列
-	queueName := ""
-	switch currentMode {
-	case "DEV":
-		queueName = businessName + "_dev"
-	case "TEST":
-		queueName = businessName + "_dev"
-	case "PRD":
-		queueName = businessName + "_prd"
-	}
+
 	args := make(map[string]interface{}, 0)
 	args["x-dead-letter-exchange"] = "x-dead-letter-exchange-all-business"
 	args["x-dead-letter-routing-key"] = businessName + "_dead"
@@ -60,6 +80,10 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 		false, args,
 	)
 	if err != nil {
+		//记录mongo日志
+		if currentMode == "PRD" {
+			c.Insert(issue)
+		}
 		err = errors.New("连接" + queueName + "队列时失败")
 		return
 	}
@@ -67,6 +91,10 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 	// body := fmt.Sprintf(`{"name":"刘宇辉","id":1}`)
 	body, err := json.Marshal(messageBody)
 	if err != nil {
+		//记录mongo日志
+		if currentMode == "PRD" {
+			c.Insert(issue)
+		}
 		err = errors.New("消息序列化失败")
 		return
 	}
@@ -85,8 +113,13 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 		},
 	)
 	if err != nil {
+		//记录mongo日志
+		if currentMode == "PRD" {
+			c.Insert(issue)
+		}
 		err = errors.New(queueName + "发送队列消息失败")
 		return
 	}
+
 	return
 }
