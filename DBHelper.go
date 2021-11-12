@@ -3,16 +3,19 @@ package marisfrolg_utils
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/SAP/go-hdb/driver"
-	"github.com/jackc/pgtype"
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/pgxpool"
 	"math/big"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/SAP/go-hdb/driver"
+	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgxpool"
+	"gopkg.in/mgo.v2/bson"
 )
 
 /*
@@ -27,6 +30,14 @@ import (
 /// <returns>说明：MongoDB 禁止使用，其他数据库自行斟酌（目前支持Oracle）
 ///</returns>
 func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) (err error) {
+	defer func() {
+		if err := recover(); err != nil {
+			logBody := bson.M{}
+			logBody["SqlList"] = SqlList
+			body, _ := json.Marshal(logBody)
+			AddOperationLog("marisfrolg_utils", "ExecuteNonQueryByTran", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		}
+	}()
 	var (
 		tx     *sql.Tx
 		result sql.Result
@@ -160,6 +171,14 @@ func StringToRuneArr(Parameters string) []string {
 
 // GetDataBySQL 万能SQL语句查询 专门用于oracle
 func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err error) {
+	defer func() {
+		if err := recover(); err != nil {
+			logBody := bson.M{}
+			logBody["SQL"] = SQL
+			body, _ := json.Marshal(logBody)
+			AddOperationLog("marisfrolg_utils", "GetDataBySQL", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		}
+	}()
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(SQL), `INSERT `) || strings.Contains(strings.ToUpper(SQL), `UPDATE `) || strings.Contains(strings.ToUpper(SQL), `DELETE `) || strings.Contains(strings.ToUpper(SQL), `TRUNCATE `) || strings.Contains(strings.ToUpper(SQL), `GRANT `) {
 		return nil, errors.New("危险语句禁止执行")
@@ -242,6 +261,14 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 
 // GetDataByPostgresSql 万能查询PG数据库
 func GetDataByPostgresSql(querySql string, conn *pgx.Conn) (data []map[string]interface{}, err error) {
+	defer func() {
+		if err := recover(); err != nil {
+			logBody := bson.M{}
+			logBody["querySql"] = querySql
+			body, _ := json.Marshal(logBody)
+			AddOperationLog("marisfrolg_utils", "GetDataByPostgresSql", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		}
+	}()
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) ||
 		strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) ||
@@ -280,6 +307,14 @@ func GetDataByPostgresSql(querySql string, conn *pgx.Conn) (data []map[string]in
 
 // GetDataByPostgresSqlByPgxPool 使用pgx连接postgresql进行连接池查询 线程安全
 func GetDataByPostgresSqlByPgxPool(querySql string, conn *pgxpool.Pool) (data []map[string]interface{}, err error) {
+	defer func() {
+		if err := recover(); err != nil {
+			logBody := bson.M{}
+			logBody["querySql"] = querySql
+			body, _ := json.Marshal(logBody)
+			AddOperationLog("marisfrolg_utils", "GetDataByPostgresSqlByPgxPool", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		}
+	}()
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) ||
 		strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) ||
@@ -316,9 +351,16 @@ func GetDataByPostgresSqlByPgxPool(querySql string, conn *pgxpool.Pool) (data []
 	return
 }
 
-
 // GetDataByHanaSql 万能hana查询语句
 func GetDataByHanaSql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			logBody := bson.M{}
+			logBody["querySql"] = querySql
+			body, _ := json.Marshal(logBody)
+			AddOperationLog("marisfrolg_utils", "GetDataByHanaSql", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		}
+	}()
 	data := make([]map[string]interface{}, 0)
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) || strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) || strings.Contains(strings.ToUpper(querySql), `GRANT `) {
@@ -420,37 +462,45 @@ func GetDataByHanaSql(querySql string, db *sql.DB) ([]map[string]interface{}, er
 }
 
 // GetDataByMysql 2021-08-23 追加mysql万能查询 日期返回成字符串形式
-func GetDataByMysql(querySql string,db *sql.DB)( []map[string]interface{}, error){
+func GetDataByMysql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			logBody := bson.M{}
+			logBody["querySql"] = querySql
+			body, _ := json.Marshal(logBody)
+			AddOperationLog("marisfrolg_utils", "GetDataByMysql", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		}
+	}()
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) || strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) || strings.Contains(strings.ToUpper(querySql), `GRANT `) {
-		return nil,errors.New("危险语句禁止执行")
+		return nil, errors.New("危险语句禁止执行")
 	}
-	rows,err:=db.Query(querySql)
-	if err!=nil{
-		return nil,err
+	rows, err := db.Query(querySql)
+	if err != nil {
+		return nil, err
 	}
 	defer rows.Close()
 	columns, _ := rows.Columns()
 	columnTypes, _ := rows.ColumnTypes()
 	//fmt.Println(columns)
-	lens:=len(columns)
-	dataList:=make([]map[string]interface{},0)
-	vals:=make([]interface{}, lens)
-	hasFlag:=false
+	lens := len(columns)
+	dataList := make([]map[string]interface{}, 0)
+	vals := make([]interface{}, lens)
+	hasFlag := false
 	for rows.Next() {
 		if !hasFlag {
-			for i:=0 ;i<lens;i++ {
+			for i := 0; i < lens; i++ {
 				typeName := columnTypes[i].DatabaseTypeName()
 				//fmt.Println(typeName)
-				if strings.Contains(typeName ,"INT") {
+				if strings.Contains(typeName, "INT") {
 					vals[i] = &sql.NullInt32{}
 				} else if typeName == "DECIMAL" || typeName == "DOUBLE" || typeName == "FLOAT" {
 					vals[i] = &sql.NullFloat64{}
-				}else if typeName == "DATETIME" || typeName=="TIMESTAMP" || typeName== "DATE"{
+				} else if typeName == "DATETIME" || typeName == "TIMESTAMP" || typeName == "DATE" {
 					vals[i] = &sql.NullTime{}
-				}else if typeName=="BOOL"{
+				} else if typeName == "BOOL" {
 					vals[i] = &sql.NullBool{}
-				}else {
+				} else {
 					vals[i] = &sql.NullString{}
 				}
 			}
@@ -459,79 +509,87 @@ func GetDataByMysql(querySql string,db *sql.DB)( []map[string]interface{}, error
 		if err := rows.Scan(vals...); err != nil {
 			return nil, err
 		}
-		temp:=make(map[string]interface{},lens)
-		for i:=0 ;i<lens;i++ {
+		temp := make(map[string]interface{}, lens)
+		for i := 0; i < lens; i++ {
 			typeName := columnTypes[i].DatabaseTypeName()
 			var v interface{}
-			if strings.Contains(typeName ,"INT") {
+			if strings.Contains(typeName, "INT") {
 				val := vals[i].(*sql.NullInt32)
-				if val.Valid{
+				if val.Valid {
 					v = val.Int32
 				}
 
 			} else if typeName == "DECIMAL" || typeName == "DOUBLE" || typeName == "FLOAT" {
 				val := vals[i].(*sql.NullFloat64)
-				if val.Valid{
+				if val.Valid {
 					v = val.Float64
 				}
-			}else if typeName == "DATETIME" || typeName=="TIMESTAMP" || typeName== "DATE"{
+			} else if typeName == "DATETIME" || typeName == "TIMESTAMP" || typeName == "DATE" {
 				val := vals[i].(*sql.NullTime)
-				if val.Valid{
+				if val.Valid {
 					v = val.Time.Format("2006-01-02 15:04:05")
 					//v,_ = time.ParseInLocation("2006-01-02 15:04:05", val.Time.Format("2006-01-02 15:04:05"), time.Local)
 				}
-			}else if typeName=="BOOL"{
+			} else if typeName == "BOOL" {
 				val := vals[i].(*sql.NullBool)
 				if val.Valid {
 					v = val.Bool
 				}
-			}else {
+			} else {
 				val := vals[i].(*sql.NullString)
-				if val.Valid{
+				if val.Valid {
 					v = val.String
 				}
 			}
 			temp[columns[i]] = v
 
 		}
-		dataList = append(dataList,temp)
+		dataList = append(dataList, temp)
 		hasFlag = true
 	}
-	return dataList,err
+	return dataList, err
 }
 
 //调整日期加上时区
-func GetDataInZoneByMysql(querySql string,db *sql.DB)( []map[string]interface{}, error){
+func GetDataInZoneByMysql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			logBody := bson.M{}
+			logBody["querySql"] = querySql
+			body, _ := json.Marshal(logBody)
+			AddOperationLog("marisfrolg_utils", "GetDataInZoneByMysql", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		}
+	}()
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(querySql), `INSERT `) || strings.Contains(strings.ToUpper(querySql), `UPDATE `) || strings.Contains(strings.ToUpper(querySql), `DELETE `) || strings.Contains(strings.ToUpper(querySql), `TRUNCATE `) || strings.Contains(strings.ToUpper(querySql), `GRANT `) {
-		return nil,errors.New("危险语句禁止执行")
+		return nil, errors.New("危险语句禁止执行")
 	}
-	rows,err:=db.Query(querySql)
-	if err!=nil{
-		return nil,err
+	rows, err := db.Query(querySql)
+	if err != nil {
+		return nil, err
 	}
 	defer rows.Close()
 	columns, _ := rows.Columns()
 	columnTypes, _ := rows.ColumnTypes()
 	//fmt.Println(columns)
-	lens:=len(columns)
-	dataList:=make([]map[string]interface{},0)
-	vals:=make([]interface{}, lens)
-	hasFlag:=false
+	lens := len(columns)
+	dataList := make([]map[string]interface{}, 0)
+	vals := make([]interface{}, lens)
+	hasFlag := false
 	for rows.Next() {
 		if !hasFlag {
-			for i:=0 ;i<lens;i++ {
+			for i := 0; i < lens; i++ {
 				typeName := columnTypes[i].DatabaseTypeName()
 				//fmt.Println(typeName)
-				if strings.Contains(typeName ,"INT") {
+				if strings.Contains(typeName, "INT") {
 					vals[i] = &sql.NullInt32{}
 				} else if typeName == "DECIMAL" || typeName == "DOUBLE" || typeName == "FLOAT" {
 					vals[i] = &sql.NullFloat64{}
-				}else if typeName == "DATETIME" || typeName=="TIMESTAMP" || typeName== "DATE"{
+				} else if typeName == "DATETIME" || typeName == "TIMESTAMP" || typeName == "DATE" {
 					vals[i] = &sql.NullTime{}
-				}else if typeName=="BOOL"{
+				} else if typeName == "BOOL" {
 					vals[i] = &sql.NullBool{}
-				}else {
+				} else {
 					vals[i] = &sql.NullString{}
 				}
 			}
@@ -540,42 +598,42 @@ func GetDataInZoneByMysql(querySql string,db *sql.DB)( []map[string]interface{},
 		if err := rows.Scan(vals...); err != nil {
 			return nil, err
 		}
-		temp:=make(map[string]interface{},lens)
-		for i:=0 ;i<lens;i++ {
+		temp := make(map[string]interface{}, lens)
+		for i := 0; i < lens; i++ {
 			typeName := columnTypes[i].DatabaseTypeName()
 			var v interface{}
-			if strings.Contains(typeName ,"INT") {
+			if strings.Contains(typeName, "INT") {
 				val := vals[i].(*sql.NullInt32)
-				if val.Valid{
+				if val.Valid {
 					v = val.Int32
 				}
 
 			} else if typeName == "DECIMAL" || typeName == "DOUBLE" || typeName == "FLOAT" {
 				val := vals[i].(*sql.NullFloat64)
-				if val.Valid{
+				if val.Valid {
 					v = val.Float64
 				}
-			}else if typeName == "DATETIME" || typeName=="TIMESTAMP" || typeName== "DATE"{
+			} else if typeName == "DATETIME" || typeName == "TIMESTAMP" || typeName == "DATE" {
 				val := vals[i].(*sql.NullTime)
-				if val.Valid{
+				if val.Valid {
 					v = val.Time.Format("2006-01-02T15:04:05Z") //已知数据库时区为0时区
 				}
-			}else if typeName=="BOOL"{
+			} else if typeName == "BOOL" {
 				val := vals[i].(*sql.NullBool)
 				if val.Valid {
 					v = val.Bool
 				}
-			}else {
+			} else {
 				val := vals[i].(*sql.NullString)
-				if val.Valid{
+				if val.Valid {
 					v = val.String
 				}
 			}
 			temp[columns[i]] = v
 
 		}
-		dataList = append(dataList,temp)
+		dataList = append(dataList, temp)
 		hasFlag = true
 	}
-	return dataList,err
+	return dataList, err
 }

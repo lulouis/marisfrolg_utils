@@ -3,6 +3,7 @@ package marisfrolg_utils
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -14,6 +15,17 @@ import (
 var conn *amqp.Connection
 
 func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName string, messageBody interface{}, mongoSession *mgo.Session) (err error) {
+	defer func() {
+		if err := recover(); err != nil {
+			logBody := bson.M{}
+			logBody["currentMode"] = currentMode
+			logBody["rabbitmq_conn"] = rabbitmq_conn
+			logBody["businessName"] = businessName
+			logBody["messageBody"] = messageBody
+			body, _ := json.Marshal(logBody)
+			AddOperationLog("marisfrolg_utils", "SendQueueMessage", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		}
+	}()
 	c := mongoSession.DB("ODSAPP").C("QueueIssue")
 	issue := bson.M{}
 	issue["_id"] = bson.NewObjectId()
