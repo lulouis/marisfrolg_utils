@@ -53,7 +53,6 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 			if currentMode == "PRD" {
 				c.Insert(issue)
 			}
-			err = errors.New("连接RabbitMQ网络失败")
 			return
 		}
 	}
@@ -65,7 +64,6 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 		if currentMode == "PRD" {
 			c.Insert(issue)
 		}
-		err = errors.New("打开RabbitMQ通道时失败")
 		return
 	}
 	defer ch.Close()
