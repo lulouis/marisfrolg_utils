@@ -44,7 +44,7 @@ func AddOperationLog(Type string, Title string, Message string, Filepath string)
 			path = fmt.Sprintf(`%s/%s.log`, LogPath, Data)
 		} else {
 
-			path = fmt.Sprintf(`%s/%s.log`, LogPath, Data+"-"+Type)
+			path = fmt.Sprintf(`%s/%s.log`, LogPath, Type)
 		}
 		file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 		if err != nil {
