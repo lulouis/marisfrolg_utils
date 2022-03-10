@@ -46,7 +46,7 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 		issue["finishedStatus"] = 0 //0未处理,1已完结,2取消处理
 	}
 	// 连接RabbitMQ服务器
-	if conn == nil {
+	if conn == nil || conn.IsClosed() {
 		conn, err = amqp.Dial(rabbitmq_conn)
 		if err != nil {
 			//记录mongo日志
