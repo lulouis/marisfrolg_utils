@@ -13,6 +13,7 @@ import (
 )
 
 var conn *amqp.Connection
+var conn1 *amqp.Connection
 
 type SendQueueMessageInput struct {
 	CurrentMode          string
@@ -175,8 +176,8 @@ func SendQueueMessageV2(input *SendQueueMessageInput) (err error) {
 		issue["finishedStatus"] = 0 //0未处理,1已完结,2取消处理
 	}
 	// 连接RabbitMQ服务器
-	if conn == nil || conn.IsClosed() {
-		conn, err = amqp.Dial(input.RabbitmqConn)
+	if conn1 == nil || conn1.IsClosed() {
+		conn1, err = amqp.Dial(input.RabbitmqConn)
 		if err != nil {
 			//记录mongo日志
 			if input.CurrentMode == "PRD" {
@@ -187,7 +188,7 @@ func SendQueueMessageV2(input *SendQueueMessageInput) (err error) {
 	}
 
 	// 创建一个channel
-	ch, err := conn.Channel()
+	ch, err := conn1.Channel()
 	if err != nil {
 		//记录mongo日志
 		if input.CurrentMode == "PRD" {
