@@ -3,7 +3,6 @@ package marisfrolg_utils
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/tealeg/xlsx"
 	"image"
 	"image/png"
 	"io"
@@ -14,11 +13,13 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/tealeg/xlsx"
 )
 
 /* 文件相关操作*/
 
-//判断目录是否存在
+// 判断目录是否存在
 func IsDirExists(path string) bool {
 	fi, err := os.Stat(path)
 	if err != nil {
@@ -28,7 +29,7 @@ func IsDirExists(path string) bool {
 	}
 }
 
-//是否创建目录
+// 是否创建目录
 func IsCreateDir(path string) (err error) {
 	if !IsDirExists(path) {
 		err = os.MkdirAll(path, 0766)
@@ -36,7 +37,7 @@ func IsCreateDir(path string) (err error) {
 	return err
 }
 
-//将文件保存到指定目录
+// 将文件保存到指定目录
 func SaveFileToTempDirectory(isNeedPrefix bool, file *multipart.FileHeader, UploadFile string) (fileName, filePath string, err error) {
 	var (
 		dir       string
@@ -73,7 +74,7 @@ ERR:
 }
 
 /*
-  功能：读取文件反序列化
+功能：读取文件反序列化
 */
 func LoadFile(filename string, v interface{}) (err error) {
 	var data []byte
@@ -87,7 +88,7 @@ func LoadFile(filename string, v interface{}) (err error) {
 	return
 }
 
-//检查制定路径下是否存在文件如果不存在直接创建文件夹
+// 检查制定路径下是否存在文件如果不存在直接创建文件夹
 func PathlogExistsFile(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -102,7 +103,7 @@ func PathlogExistsFile(path string) (bool, error) {
 	return false, err
 }
 
-//网络文件下载
+// 网络文件下载
 func DownloadFile(fileName string, url string) (err error) {
 	// Create the file
 	out, err := os.Create(fileName)
@@ -137,7 +138,7 @@ type Size interface {
 	Size() int64
 }
 
-//读取Excel文件流
+// 读取Excel文件流
 func XlsxFileReader(mimeFile multipart.File) (*xlsx.File, error) {
 
 	defer mimeFile.Close()
@@ -150,7 +151,7 @@ func XlsxFileReader(mimeFile multipart.File) (*xlsx.File, error) {
 	return xlFile, err
 }
 
-//判断文件大小
+// 判断文件大小
 func getFileSize(path string) int64 {
 	if !exists(path) {
 		return 0
@@ -162,22 +163,22 @@ func getFileSize(path string) int64 {
 	return fileInfo.Size()
 }
 
-//判断是否存在文件
+// 判断是否存在文件
 func exists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil || os.IsExist(err)
 }
 
-//创建图片
-//filePath ：文件路径
-//filename：文件名称
-//img 图片属性
+// 创建图片
+// filePath ：文件路径
+// filename：文件名称
+// img 图片属性
 func CreateImg(filePath string, fileName string, img image.Image) error {
 	_, err := PathlogExistsFile(filePath)
 	if err != nil {
 		return err
 	}
-	file, err := os.Create(filePath +"/"+ fileName)
+	file, err := os.Create(filePath + "/" + fileName)
 	if err != nil {
 		return err
 	}
@@ -189,7 +190,7 @@ func CreateImg(filePath string, fileName string, img image.Image) error {
 	return nil
 }
 
-//将文件转换成byte[]
+// 将文件转换成byte[]
 func FileToByte(f *os.File) ([]byte, error) {
 	var payload []byte
 	for {

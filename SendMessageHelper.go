@@ -3,21 +3,22 @@ package marisfrolg_utils
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/DeanThompson/jpush-api-go-client"
 	"github.com/DeanThompson/jpush-api-go-client/push"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	gosocketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
-	"strings"
 )
 
 type JgVerifyResponse struct {
-	Id float64 `json:"id"`
-	Code int `json:"code"`
-	Content string `json:"content"`
-	ExID string `json:"exID"`
-	Phone string `json:"phone"`
+	Id      float64 `json:"id"`
+	Code    int     `json:"code"`
+	Content string  `json:"content"`
+	ExID    string  `json:"exID"`
+	Phone   string  `json:"phone"`
 }
 
 type Text struct {
@@ -44,24 +45,24 @@ type Message struct { //touser、toparty、totag不能同时为空
 	Textcard Textcard `json:"textcard"` //Msgtype为textcard时方可使用
 }
 
-/// <summary>
-/// 阿里短信发送接口
-/// 短信服务SDK简介 https://help.aliyun.com/document_detail/101874.html?spm=a2c4g.11186623.6.592.78ba5f30ZXZjpI
-/// </summary>
-/// <param name="PhoneNumbers">
-/// 短信接收号码,支持以逗号分隔的形式进行批量调用，
-/// 批量上限为800个手机号码,批量调用相对于单条调用及时性稍有延迟,
-/// 验证码类型的短信推荐使用单条调用的方式</param>
-/// <param name="SignName">短信签名</param>
-/// <param name="TemplateCode">短信模板ID</param>
-/// <param name="TemplateParam">
-/// 可选参数,
-/// 短信模板变量替换JSON串,友情提示:如果JSON中需要带换行符,
-/// 请参照标准的JSON协议对换行符的要求,比如短信内容中包含\r\n的情况在JSON中需要表示成\r\n,
-/// 否则会导致JSON在服务端解析失败
-/// </param>
-/// <returns></returns>
-func SendShortMessage(regionId string, accessKeyId string, accessKeySecret string,PhoneNumbers string, SignName string, TemplateCode string, TemplateParam string) string {
+// / <summary>
+// / 阿里短信发送接口
+// / 短信服务SDK简介 https://help.aliyun.com/document_detail/101874.html?spm=a2c4g.11186623.6.592.78ba5f30ZXZjpI
+// / </summary>
+// / <param name="PhoneNumbers">
+// / 短信接收号码,支持以逗号分隔的形式进行批量调用，
+// / 批量上限为800个手机号码,批量调用相对于单条调用及时性稍有延迟,
+// / 验证码类型的短信推荐使用单条调用的方式</param>
+// / <param name="SignName">短信签名</param>
+// / <param name="TemplateCode">短信模板ID</param>
+// / <param name="TemplateParam">
+// / 可选参数,
+// / 短信模板变量替换JSON串,友情提示:如果JSON中需要带换行符,
+// / 请参照标准的JSON协议对换行符的要求,比如短信内容中包含\r\n的情况在JSON中需要表示成\r\n,
+// / 否则会导致JSON在服务端解析失败
+// / </param>
+// / <returns></returns>
+func SendShortMessage(regionId string, accessKeyId string, accessKeySecret string, PhoneNumbers string, SignName string, TemplateCode string, TemplateParam string) string {
 	client, err := sdk.NewClientWithAccessKey(regionId, accessKeyId, accessKeySecret)
 	if err != nil {
 		panic(err)
@@ -88,15 +89,15 @@ func SendShortMessage(regionId string, accessKeyId string, accessKeySecret strin
 }
 
 // 发送通知给QRCODE changedType:PERMISSION_CHANGED MENU_CHANGED BADGE_CHANGED
-func SendMessageToQrCode(userId, changedType,QRCODE_IP string,QRCODE_PORT int) {
+func SendMessageToQrCode(userId, changedType, QRCODE_IP string, QRCODE_PORT int) {
 	im, _ := gosocketio.Dial(
 		gosocketio.GetUrl(QRCODE_IP, QRCODE_PORT, false),
 		transport.GetDefaultWebsocketTransport())
 	im.Emit(changedType, userId)
 }
 
-//发送推送消息
-func SendJPush(appKey,masterSecret,registrationId, pushPlatform, logTitle, title, notice string, extraMap map[string]interface{}) (err error) {
+// 发送推送消息
+func SendJPush(appKey, masterSecret, registrationId, pushPlatform, logTitle, title, notice string, extraMap map[string]interface{}) (err error) {
 	var (
 		ids                 []string
 		platform            *push.Platform
@@ -191,18 +192,18 @@ ERR:
 	return
 }
 
-//使用go语言发企业微信消息
-func SendWorkMessage(msg Message, reqUrl,token string) (result []byte, err error) {
+// 使用go语言发企业微信消息
+func SendWorkMessage(msg Message, reqUrl, token string) (result []byte, err error) {
 	//reqUrl := "http://ip:端口/v1/Push/PushMessage"
 	jsonData, err := json.Marshal(msg)
-	if err!=nil{
+	if err != nil {
 		return nil, err
 	}
 	data := string(jsonData)
 	//bearer := "Bearer " + token
-	result, err = HttpPostOnlyBody(reqUrl,  data, token)
+	result, err = HttpPostOnlyBody(reqUrl, data, token)
 	if err != nil {
-		fmt.Printf("PushMessage 请求接口失败 err:%s",err)
+		fmt.Printf("PushMessage 请求接口失败 err:%s", err)
 		return nil, err
 	}
 	return

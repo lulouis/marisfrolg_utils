@@ -13,8 +13,8 @@ import (
 
 	"github.com/SAP/go-hdb/driver"
 	"github.com/jackc/pgtype"
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/pgxpool"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -22,13 +22,13 @@ import (
 数据库相关操作
 */
 
-/// <summary>
-/// 批量执行 含事务
-/// </summary>
-/// <param name="db">数据连接</param>
-/// <param name="SqlList">Sql 列表</param>
-/// <returns>说明：MongoDB 禁止使用，其他数据库自行斟酌（目前支持Oracle）
-///</returns>
+// / <summary>
+// / 批量执行 含事务
+// / </summary>
+// / <param name="db">数据连接</param>
+// / <param name="SqlList">Sql 列表</param>
+// / <returns>说明：MongoDB 禁止使用，其他数据库自行斟酌（目前支持Oracle）
+// /</returns>
 func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) (err error) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -69,9 +69,9 @@ ERR:
 	return
 }
 
-//SQL IN()的查询里不能超过1000列，将大于1000列的以900为间隔分开组装
-//IdList:数据列 例如："'987654321','123456789'"
-//Field:字段名
+// SQL IN()的查询里不能超过1000列，将大于1000列的以900为间隔分开组装
+// IdList:数据列 例如："'987654321','123456789'"
+// Field:字段名
 func AssemblyParameters(IdList, Field string) (condition string) {
 	var ApplyIdList [100]string
 	mbct := strings.Trim(IdList, ",")
@@ -103,9 +103,9 @@ func AssemblyParameters(IdList, Field string) (condition string) {
 	}
 }
 
-//对数据库查询请求参数的优化
-//Parameters 数据查询参数
-//Field 字段名
+// 对数据库查询请求参数的优化
+// Parameters 数据查询参数
+// Field 字段名
 func GetSqlList(Parameters string, Field string) string {
 	a := strings.Index(Parameters, ",")
 	if a == -1 {
@@ -152,8 +152,8 @@ func GetSqlList(Parameters string, Field string) string {
 	}
 }
 
-//对HANA查询结果的特殊符号优化
-//Parameters 数据结果列请求参数
+// 对HANA查询结果的特殊符号优化
+// Parameters 数据结果列请求参数
 func StringToRuneArr(Parameters string) []string {
 	Parameters = strings.Replace(Parameters, " ", "", -1)
 	Parameters = strings.Replace(Parameters, "\"", "", -1)
@@ -550,7 +550,7 @@ func GetDataByMysql(querySql string, db *sql.DB) ([]map[string]interface{}, erro
 	return dataList, err
 }
 
-//调整日期加上时区
+// 调整日期加上时区
 func GetDataInZoneByMysql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
 	defer func() {
 		if err := recover(); err != nil {
