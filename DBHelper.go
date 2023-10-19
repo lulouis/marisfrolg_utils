@@ -186,8 +186,12 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 	if err != nil {
 		return
 	}
-	rows, err := db.Query(SQL)
-	defer rows.Close()
+	stmt, err := db.Prepare(SQL)
+	if err != nil {
+		return
+	}
+	rows, err := stmt.Query()
+	defer stmt.Close()
 	if err != nil {
 		return
 	}
@@ -201,6 +205,7 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 	data = make([]map[string]interface{}, 0)
 	columns, _ := rows.Columns()
 	columnTypes, _ := rows.ColumnTypes()
+	defer rows.Close()
 	for rows.Next() {
 		if cnt == 0 {
 			indexs = make([]int, 0, len(columns))
