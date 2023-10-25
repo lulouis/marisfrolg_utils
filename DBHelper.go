@@ -31,7 +31,10 @@ import (
 // /</returns>
 func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) (err error) {
 	defer func() {
-		if err := recover(); err != nil {
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
 			logBody := bson.M{}
 			logBody["SqlList"] = SqlList
 			body, _ := json.Marshal(logBody)
@@ -66,6 +69,43 @@ func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) (err error) {
 ERR:
 	//回滚
 	tx.Rollback()
+	return
+}
+
+// / <summary>
+// / 批量执行 含事务
+// / </summary>
+// / <param name="db">事务化连接</param>
+// / <param name="SqlList">语句列表</param>
+// / <returns>说明：MongoDB 禁止使用，其他数据库自行斟酌（目前支持Oracle）
+// /</returns>
+func ExecuteNonQueryByTx(tx *sql.Tx, SqlList []string) (err error) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			logBody := bson.M{}
+			logBody["SqlList"] = SqlList
+			body, _ := json.Marshal(logBody)
+			AddOperationLog("marisfrolg_utils", "ExecuteNonQueryByTx", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		}
+	}()
+	var result sql.Result
+	for i := 0; i < len(SqlList); i++ {
+		result, err = tx.Exec(SqlList[i])
+		if err != nil {
+			return
+		}
+		if result == nil {
+			err = fmt.Errorf(`事务执行,未返回任何结果`)
+			return
+		}
+		_, err = result.RowsAffected()
+		if err != nil {
+			return
+		}
+	}
 	return
 }
 
