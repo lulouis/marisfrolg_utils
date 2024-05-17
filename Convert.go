@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"reflect"
 	"time"
+	"unsafe"
 )
 
 func ToFloat64(ori []byte) (re float64) {
@@ -133,11 +134,11 @@ func MapToStruct(data map[string]interface{}, result interface{}) error {
 		fieldValue := rv.FieldByName(key)
 		if fieldValue.IsValid() {
 			valueValue := reflect.ValueOf(value)
-			if fieldValue.CanSet() && value != nil {
+			if value != nil {
 				if fieldValue.Type().Name() == "Time" && valueValue.Type().Name() == "string" {
-					fieldValue.Set(reflect.ValueOf(parseOracleTime(value)))
+					setUnexportedField(fieldValue, reflect.ValueOf(parseOracleTime(value)))
 				} else {
-					fieldValue.Set(valueValue)
+					setUnexportedField(fieldValue, valueValue)
 				}
 			}
 		}
@@ -145,31 +146,19 @@ func MapToStruct(data map[string]interface{}, result interface{}) error {
 	return nil
 }
 
+func setUnexportedField(field reflect.Value, value reflect.Value) {
+	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(value)
+}
+
 func indirect(v reflect.Value, decodingNull bool) reflect.Value {
-	// Issue #24153 indicates that it is generally not a guaranteed property
-	// that you may round-trip a reflect.Value by calling Value.Addr().Elem()
-	// and expect the value to still be settable for values derived from
-	// unexported embedded struct fields.
-	//
-	// The logic below effectively does this when it first addresses the value
-	// (to satisfy possible pointer methods) and continues to dereference
-	// subsequent pointers as necessary.
-	//
-	// After the first round-trip, we set v back to the original value to
-	// preserve the original RW flags contained in reflect.Value.
 	v0 := v
 	haveAddr := false
 
-	// If v is a named type and is addressable,
-	// start with its address, so that if the type has pointer methods,
-	// we find them.
 	if v.Kind() != reflect.Pointer && v.Type().Name() != "" && v.CanAddr() {
 		haveAddr = true
 		v = v.Addr()
 	}
 	for {
-		// Load value from interface, but only if the result will be
-		// usefully addressable.
 		if v.Kind() == reflect.Interface && !v.IsNil() {
 			e := v.Elem()
 			if e.Kind() == reflect.Pointer && !e.IsNil() && (!decodingNull || e.Elem().Kind() == reflect.Pointer) {
@@ -187,9 +176,6 @@ func indirect(v reflect.Value, decodingNull bool) reflect.Value {
 			break
 		}
 
-		// Prevent infinite loop if v is an interface pointing to its own address:
-		//     var v interface{}
-		//     v = &v
 		if v.Elem().Kind() == reflect.Interface && v.Elem().Elem() == v {
 			v = v.Elem()
 			break
@@ -199,7 +185,7 @@ func indirect(v reflect.Value, decodingNull bool) reflect.Value {
 		}
 
 		if haveAddr {
-			v = v0 // restore original value after round-trip Value.Addr().Elem()
+			v = v0
 			haveAddr = false
 		} else {
 			v = v.Elem()
