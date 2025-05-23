@@ -37,7 +37,7 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 			AddOperationLog("marisfrolg_utils", "SendQueueMessage", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
 		}
 	}()
-	c := mongoSession.DB("ODSAPP").C("QueueIssue")
+	c := mongoSession.DB("OC-QUEUE").C("QueueIssue")
 	issue := bson.M{}
 	issue["_id"] = bson.NewObjectId()
 	// 声明一个队列
