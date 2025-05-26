@@ -3,7 +3,6 @@ package marisfrolg_utils
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -15,7 +14,6 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"gopkg.in/mgo.v2/bson"
 )
 
 /*
@@ -30,15 +28,14 @@ import (
 // / <returns>说明：MongoDB 禁止使用，其他数据库自行斟酌（目前支持Oracle）
 // /</returns>
 func ExecuteNonQueryByTran(db *sql.DB, SqlList []string) (err error) {
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(SqlList)
 	defer func() {
 		if rec := recover(); rec != nil {
 			err = fmt.Errorf("%v", rec)
 		}
 		if err != nil {
-			logBody := bson.M{}
-			logBody["SqlList"] = SqlList
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "ExecuteNonQueryByTran", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+			AuditLog(logInfo, err)
 		}
 	}()
 	var (
@@ -80,17 +77,16 @@ ERR:
 // / <returns>说明：MongoDB 禁止使用，其他数据库自行斟酌（目前支持Oracle）
 // /</returns>
 func ExecuteNonQueryByTx(tx *sql.Tx, SqlList []string) (err error) {
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
 	defer func() {
 		if rec := recover(); rec != nil {
 			err = fmt.Errorf("%v", rec)
 		}
 		if err != nil {
-			logBody := bson.M{}
-			logBody["SqlList"] = SqlList
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "ExecuteNonQueryByTx", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+			AuditLog(logInfo, err)
 		}
 	}()
+	logInfo.SetRequest(SqlList)
 	var result sql.Result
 	for i := 0; i < len(SqlList); i++ {
 		result, err = tx.Exec(SqlList[i])
@@ -211,12 +207,14 @@ func StringToRuneArr(Parameters string) []string {
 
 // GetDataBySQL 万能SQL语句查询 专门用于oracle
 func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err error) {
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(SQL)
 	defer func() {
-		if err := recover(); err != nil {
-			logBody := bson.M{}
-			logBody["SQL"] = SQL
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "GetDataBySQL", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			AuditLog(logInfo, err)
 		}
 	}()
 	//危险语句检查
@@ -306,12 +304,14 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 
 // GetDataByPostgresSql 万能查询PG数据库
 func GetDataByPostgresSql(querySql string, conn *pgx.Conn) (data []map[string]interface{}, err error) {
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(querySql)
 	defer func() {
-		if err := recover(); err != nil {
-			logBody := bson.M{}
-			logBody["querySql"] = querySql
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "GetDataByPostgresSql", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			AuditLog(logInfo, err)
 		}
 	}()
 	//危险语句检查
@@ -352,12 +352,14 @@ func GetDataByPostgresSql(querySql string, conn *pgx.Conn) (data []map[string]in
 
 // GetDataByPostgresSqlByPgxPool 使用pgx连接postgresql进行连接池查询 线程安全
 func GetDataByPostgresSqlByPgxPool(querySql string, conn *pgxpool.Pool) (data []map[string]interface{}, err error) {
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(querySql)
 	defer func() {
-		if err := recover(); err != nil {
-			logBody := bson.M{}
-			logBody["querySql"] = querySql
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "GetDataByPostgresSqlByPgxPool", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			AuditLog(logInfo, err)
 		}
 	}()
 	//危险语句检查
@@ -398,12 +400,15 @@ func GetDataByPostgresSqlByPgxPool(querySql string, conn *pgxpool.Pool) (data []
 
 // GetDataByHanaSql 万能hana查询语句
 func GetDataByHanaSql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
+	var err error
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(querySql)
 	defer func() {
-		if err := recover(); err != nil {
-			logBody := bson.M{}
-			logBody["querySql"] = querySql
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "GetDataByHanaSql", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			AuditLog(logInfo, err)
 		}
 	}()
 	data := make([]map[string]interface{}, 0)
@@ -508,12 +513,15 @@ func GetDataByHanaSql(querySql string, db *sql.DB) ([]map[string]interface{}, er
 
 // GetDataByMysql 2021-08-23 追加mysql万能查询 日期返回成字符串形式
 func GetDataByMysql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
+	var err error
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(querySql)
 	defer func() {
-		if err := recover(); err != nil {
-			logBody := bson.M{}
-			logBody["querySql"] = querySql
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "GetDataByMysql", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			AuditLog(logInfo, err)
 		}
 	}()
 	//危险语句检查
@@ -597,12 +605,15 @@ func GetDataByMysql(querySql string, db *sql.DB) ([]map[string]interface{}, erro
 
 // 调整日期加上时区
 func GetDataInZoneByMysql(querySql string, db *sql.DB) ([]map[string]interface{}, error) {
+	var err error
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(querySql)
 	defer func() {
-		if err := recover(); err != nil {
-			logBody := bson.M{}
-			logBody["querySql"] = querySql
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "GetDataInZoneByMysql", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			AuditLog(logInfo, err)
 		}
 	}()
 	//危险语句检查

@@ -8,7 +8,17 @@ import (
 )
 
 func TestLog(t *testing.T) {
-	marisfrolg_utils.AddOperationLog("文件名", "测试", "消息内容", "LOG")
+	var err error
+	logInfo := marisfrolg_utils.NewAuditLogInfo("marisfrolg_utils", marisfrolg_utils.GetMethodName(), "00000")
+	logInfo.SetRequest("测试，你好")
+	defer func() {
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			marisfrolg_utils.AuditLog(logInfo, err)
+		}
+	}()
 }
 
 func TestPrintMyName(t *testing.T) {

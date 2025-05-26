@@ -26,15 +26,19 @@ type SendQueueMessageInput struct {
 }
 
 func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName string, messageBody interface{}, mongoSession *mgo.Session) (err error) {
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(map[string]interface{}{
+		"currentMode":   currentMode,
+		"rabbitmq_conn": rabbitmq_conn,
+		"businessName":  businessName,
+		"messageBody":   messageBody,
+	})
 	defer func() {
-		if err := recover(); err != nil {
-			logBody := bson.M{}
-			logBody["currentMode"] = currentMode
-			logBody["rabbitmq_conn"] = rabbitmq_conn
-			logBody["businessName"] = businessName
-			logBody["messageBody"] = messageBody
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "SendQueueMessage", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			AuditLog(logInfo, err)
 		}
 	}()
 	c := mongoSession.DB("OC-QUEUE").C("QueueIssue")
@@ -147,15 +151,14 @@ func SendQueueMessage(currentMode string, rabbitmq_conn string, businessName str
 
 // 用于推送OC队列与OC故障
 func SendQueueMessageV2(input *SendQueueMessageInput) (err error) {
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(input)
 	defer func() {
-		if err := recover(); err != nil {
-			logBody := bson.M{}
-			logBody["currentMode"] = input.CurrentMode
-			logBody["rabbitmq_conn"] = input.RabbitmqConn
-			logBody["businessName"] = input.BusinessName
-			logBody["messageBody"] = input.MessageBody
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "SendQueueMessageV2", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			AuditLog(logInfo, err)
 		}
 	}()
 	c := input.QueueIssueCollection
@@ -268,15 +271,14 @@ func SendQueueMessageV2(input *SendQueueMessageInput) (err error) {
 
 // 与V2类似，大批量推送单号数组
 func SendQueueMessageV3(input *SendQueueMessageInput, keys []string) (err error) {
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(input)
 	defer func() {
-		if err := recover(); err != nil {
-			logBody := bson.M{}
-			logBody["currentMode"] = input.CurrentMode
-			logBody["rabbitmq_conn"] = input.RabbitmqConn
-			logBody["businessName"] = input.BusinessName
-			logBody["messageBody"] = input.MessageBody
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "SendQueueMessageV3", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			AuditLog(logInfo, err)
 		}
 	}()
 	c := input.QueueIssueCollection
@@ -392,15 +394,17 @@ func SendQueueMessageV3(input *SendQueueMessageInput, keys []string) (err error)
 
 // 与V2类似，差异是一次连接，大量推送
 func SendQueueMessageV4(input *SendQueueMessageInput, objects []interface{}) (err error) {
+	logInfo := NewAuditLogInfo("marisfrolg_utils", GetMethodName(), "00000")
+	logInfo.SetRequest(map[string]interface{}{
+		"input":   input,
+		"objects": objects,
+	})
 	defer func() {
-		if err := recover(); err != nil {
-			logBody := bson.M{}
-			logBody["currentMode"] = input.CurrentMode
-			logBody["rabbitmq_conn"] = input.RabbitmqConn
-			logBody["businessName"] = input.BusinessName
-			logBody["messageBody"] = input.MessageBody
-			body, _ := json.Marshal(logBody)
-			AddOperationLog("marisfrolg_utils", "SendQueueMessageV3", fmt.Sprintf("错误详情:%s\n传入参数:%s \n", err, string(body)), "Log")
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
+		}
+		if err != nil {
+			AuditLog(logInfo, err)
 		}
 	}()
 	c := input.QueueIssueCollection
