@@ -20,6 +20,34 @@ import (
 数据库相关操作
 */
 
+// 执行查询 返回单个值（默认字符串类型）2020-11-17 16:50:55 暂时只支持Oracle
+func ExecuteScalar(db *sql.DB, t_sql string) (str string, err error) {
+	err = db.QueryRow(t_sql).Scan(&str)
+	if err != nil && err == sql.ErrNoRows {
+		return "", nil
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return str, nil
+}
+
+// 执行语句 增删改
+func ExecuteNonQuery(db *sql.DB, t_sql string) (number int64, err error) {
+	var result sql.Result
+	if result, err = db.Exec(t_sql); err != nil {
+		return 0, err
+	}
+
+	if number, err = result.RowsAffected(); err != nil {
+		return
+	}
+
+	return
+}
+
 // / <summary>
 // / 批量执行 含事务
 // / </summary>
