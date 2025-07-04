@@ -480,17 +480,12 @@ func SendQueueMessageV4(input *SendQueueMessageInput, objects []interface{}) (er
 	}
 
 	for _, obj := range objects {
-		// 发送消息到队列中
-		// body := fmt.Sprintf(`{"name":"刘宇辉","id":1}`)
 		var body []byte
-		body, err = json.Marshal(obj)
-		if err != nil {
-			//记录mongo日志
-			if input.CurrentMode == "PRD" {
-				c.Insert(issue)
-			}
-			err = errors.New("消息序列化失败")
-			return
+		// 判断是否为字符串
+		if str, ok := obj.(string); ok {
+			body = []byte(str)
+		} else {
+			body, _ = json.Marshal(obj)
 		}
 		err = ch.Publish(
 			"",     // exchange
@@ -514,6 +509,5 @@ func SendQueueMessageV4(input *SendQueueMessageInput, objects []interface{}) (er
 			return
 		}
 	}
-
 	return
 }
