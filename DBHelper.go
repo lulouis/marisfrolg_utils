@@ -247,10 +247,10 @@ func GetDataBySQL(SQL string, db *sql.DB) (data []map[string]interface{}, err er
 	}()
 	//危险语句检查
 	if strings.Contains(strings.ToUpper(SQL), `INSERT `) || strings.Contains(strings.ToUpper(SQL), `UPDATE `) || strings.Contains(strings.ToUpper(SQL), `DELETE `) || strings.Contains(strings.ToUpper(SQL), `TRUNCATE `) || strings.Contains(strings.ToUpper(SQL), `GRANT `) {
-		return nil, errors.New("危险语句禁止执行")
-	}
-	if err != nil {
-		return
+		if !strings.Contains(strings.ToUpper(SQL), "STO_DELETE") {
+			return nil, errors.New("危险语句禁止执行")
+		}
+
 	}
 	stmt, err := db.Prepare(SQL)
 	if err != nil {
